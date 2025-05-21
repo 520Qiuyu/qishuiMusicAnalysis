@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="汽水音乐解析下载工具 - 一个便捷的音乐资源获取工具">
+    <title>汽水音乐解析下载工具</title>
+    <!-- 引入字体图标库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
+    <style>
+        /* 重置默认样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 基础样式 */
+        :root {
+            --primary-color: #007AFF;
+            --secondary-color: #5856D6;
+            --success-color: #34C759;
+            --warning-color: #FF9500;
+            --error-color: #FF3B30;
+            --background-color: #F2F2F7;
+            --surface-color: #FFFFFF;
+            --text-primary: #000000;
+            --text-secondary: #8E8E93;
+            --border-radius: 12px;
+            --spacing-unit: 8px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+
+        /* 布局样式 */
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: calc(var(--spacing-unit) * 2);
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            gap: calc(var(--spacing-unit) * 3);
+        }
+
+        .app-header {
+            text-align: center;
+            padding: calc(var(--spacing-unit) * 3) 0;
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: var(--spacing-unit);
+            color: var(--text-primary);
+        }
+
+        .app-description {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .app-main {
+            display: grid;
+            gap: calc(var(--spacing-unit) * 3);
+        }
+
+        /* 组件样式 */
+        .link-input-section {
+            background-color: var(--surface-color);
+            padding: calc(var(--spacing-unit) * 2);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            display: flex;
+            gap: var(--spacing-unit);
+        }
+
+        .music-link-input {
+            flex: 1;
+            padding: calc(var(--spacing-unit) * 1.5);
+            border: 2px solid #E5E5EA;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .music-link-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .parse-button {
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-unit);
+            transition: background-color 0.3s ease;
+        }
+
+        .parse-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* 解析状态样式 */
+        .parse-status-section {
+            display: flex;
+            justify-content: center;
+        }
+
+        .parse-status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-unit);
+            padding: calc(var(--spacing-unit) * 2);
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-icon .spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 音乐信息样式 */
+        .music-info-section {
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: calc(var(--spacing-unit) * 2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .music-info-container {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: calc(var(--spacing-unit) * 2);
+            align-items: center;
+        }
+
+        .music-cover img {
+            width: 120px;
+            height: 120px;
+            border-radius: calc(var(--border-radius) / 2);
+            object-fit: cover;
+        }
+
+        .music-details {
+            display: grid;
+            gap: var(--spacing-unit);
+        }
+
+        .audio-player {
+            margin-top: calc(var(--spacing-unit) * 2);
+            width: 100%;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            height: 36px;
+            border-radius: calc(var(--border-radius) / 2);
+        }
+
+        .music-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .music-artist,
+        .music-album {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .download-button {
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-unit);
+            transition: background-color 0.3s ease;
+        }
+
+        .download-button:hover {
+            filter: brightness(1.1);
+        }
+
+        /* 下载管理样式 */
+        .download-manager-section,
+        .history-section {
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: calc(var(--spacing-unit) * 2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: calc(var(--spacing-unit) * 2);
+            color: var(--text-primary);
+        }
+
+        .download-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: var(--spacing-unit);
+            padding: calc(var(--spacing-unit) * 1.5);
+            border-bottom: 1px solid #E5E5EA;
+        }
+
+        .download-item:last-child {
+            border-bottom: none;
+        }
+
+        .download-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: calc(var(--spacing-unit) / 2);
+        }
+
+        .download-name {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .download-size {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .download-progress {
+            margin: var(--spacing-unit) 0;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background-color: #E5E5EA;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: calc(var(--spacing-unit) / 2);
+        }
+
+        .download-controls {
+            display: flex;
+            gap: var(--spacing-unit);
+        }
+
+        .control-button {
+            padding: calc(var(--spacing-unit) * 0.75);
+            background-color: transparent;
+            border: 1px solid #E5E5EA;
+            border-radius: calc(var(--border-radius) / 2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            background-color: #F2F2F7;
+        }
+
+        .pause-button {
+            color: var(--primary-color);
+        }
+
+        .cancel-button {
+            color: var(--error-color);
+        }
+
+        /* 通用工具类 */
+        .hidden {
+            display: none;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .app-container {
+                padding: var(--spacing-unit);
+            }
+
+            .music-info-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .music-cover {
+                justify-self: center;
+            }
+
+            .download-controls {
+                justify-content: center;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .music-info-section,
+        .parse-status,
+        .download-item {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 头部区域 -->
+        <header class="app-header">
+            <h1 class="app-title">汽水音乐解析下载工具</h1>
+            <p class="app-description">支持多平台音乐资源解析下载，简单易用的音乐资源获取工具</p>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="app-main">
+            <!-- 链接输入区域 -->
+            <section class="link-input-section">
+                <div class="input-group">
+                    <input type="text" id="musicLink" class="music-link-input" placeholder="请输入音乐分享链接"
+                        aria-label="音乐链接输入框">
+                    <button type="button" id="parseButton" class="parse-button" aria-label="解析链接">
+                        <i class="ri-search-line"></i> 解析
+                    </button>
+                </div>
+            </section>
+
+            <!-- 解析状态展示区域 -->
+            <section class="parse-status-section" aria-live="polite">
+                <div id="parseStatus" class="parse-status hidden">
+                    <div class="status-icon">
+                        <i class="ri-loader-4-line spinning"></i>
+                    </div>
+                    <div class="status-text">正在解析中...</div>
+                </div>
+            </section>
+
+            <!-- 音乐信息展示区域 -->
+            <section class="music-info-section hidden" aria-label="音乐信息展示区域">
+                <div class="music-info-container">
+                    <div class="music-cover">
+                        <img src="" alt="音乐封面" id="musicCover">
+                    </div>
+                    <div class="music-details">
+                        <h2 class="music-title" id="musicTitle"></h2>
+                        <p class="music-artist" id="musicArtist"></p>
+                        <p class="music-album" id="musicAlbum"></p>
+                        <div class="audio-player">
+                            <audio id="musicPlayer" controls referrerpolicy="no-referrer">
+                                <source src="" type="audio/mpeg">
+                                您的浏览器不支持音频播放。
+                            </audio>
+                        </div>
+                    </div>
+                    <div class="download-controls">
+                        <button type="button" class="download-button" id="downloadButton">
+                            <i class="ri-download-2-line"></i> 下载
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 下载管理区域 -->
+            <section class="download-manager-section" aria-label="下载管理区域">
+                <h2 class="section-title">下载管理</h2>
+                <div class="download-list" id="downloadList">
+                    <!-- 下载项模板 -->
+                    <template id="downloadItemTemplate">
+                        <div class="download-item">
+                            <div class="download-item-info">
+                                <span class="download-name"></span>
+                                <span class="download-size"></span>
+                            </div>
+                            <div class="download-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <span class="progress-text"></span>
+                            </div>
+                            <div class="download-controls">
+                                <button class="control-button pause-button" aria-label="暂停下载">
+                                    <i class="ri-pause-line"></i>
+                                </button>
+                                <button class="control-button cancel-button" aria-label="取消下载">
+                                    <i class="ri-close-line"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </section>
+
+            <!-- 历史记录区域 -->
+            <section class="history-section" aria-label="下载历史记录">
+                <h2 class="section-title">下载历史</h2>
+                <div class="history-list" id="historyList">
+                    <!-- 历史记录将通过JavaScript动态添加 -->
+                </div>
+            </section>
+        </main>
+
+        <!-- 底部区域 -->
+        <footer class="app-footer">
+            <p class="footer-text">© 2024 汽水音乐解析下载工具</p>
+        </footer>
+    </div>
+
+    <!-- 核心功能脚本 -->
+    <script type="module">
+        /**
+         * @typedef {Object} MusicInfo
+         * @property {string} title - 音乐标题
+         * @property {string} artist - 艺术家
+         * @property {string} album - 专辑名称
+         * @property {string} cover - 封面图片URL
+         * @property {string} url - 音乐文件URL
+         */
+
+        /**
+         * @typedef {Object} DownloadTask
+         * @property {string} id - 下载任务ID
+         * @property {string} name - 音乐名称
+         * @property {number} size - 文件大小
+         * @property {number} progress - 下载进度（0-100）
+         * @property {string} status - 下载状态（pending/downloading/paused/completed/error）
+         */
+
+        // 状态管理
+        const state = {
+            /** @type {MusicInfo|null} */
+            currentMusic: null,
+            /** @type {Map<string, DownloadTask>} */
+            downloads: new Map(),
+            /** @type {MusicInfo[]} */
+            history: []
+        };
+
+        // DOM 元素
+        const elements = {
+            musicLink: document.getElementById('musicLink'),
+            parseButton: document.getElementById('parseButton'),
+            parseStatus: document.getElementById('parseStatus'),
+            musicInfoSection: document.querySelector('.music-info-section'),
+            musicCover: document.getElementById('musicCover'),
+            musicTitle: document.getElementById('musicTitle'),
+            musicArtist: document.getElementById('musicArtist'),
+            musicAlbum: document.getElementById('musicAlbum'),
+            musicPlayer: document.getElementById('musicPlayer'),
+            downloadButton: document.getElementById('downloadButton'),
+            downloadList: document.getElementById('downloadList'),
+            historyList: document.getElementById('historyList'),
+            downloadItemTemplate: document.getElementById('downloadItemTemplate')
+        };
+
+        /**
+
+
+        // 绑定下载按钮事件
+        elements.downloadButton.addEventListener('click', () => {
+            if (state.currentMusic) {
+                startDownload(state.currentMusic);
+            }
+        });
+
+        // 初始化时从本地存储加载历史记录
+        const savedHistory = localStorage.getItem('downloadHistory');
+        if (savedHistory) {
+            try {
+                state.history = JSON.parse(savedHistory);
+                // 显示历史记录
+                state.history.forEach(historyItem => {
+                    const historyItemElement = document.createElement('div');
+                    historyItemElement.className = 'download-item';
+                    historyItemElement.innerHTML = `
+                        <div class="download-item-info">
+                            <span class="download-name">${historyItem.title} - ${historyItem.artist}</span>
+                            <span class="download-size">${new Date(historyItem.downloadDate).toLocaleString()}</span>
+                        </div>
+                    `;
+                    elements.historyList.appendChild(historyItemElement);
+                });
+            } catch (error) {
+                console.error('加载历史记录失败:', error);
+                state.history = [];
+            }
+        }
+
+        /**
+         * 解析音乐链接
+         * @param {string} link - 音乐分享链接
+         * @returns {Promise<MusicInfo>}
+         */
+        async function parseMusicLink(link) {
+            try {
+                // link 《一点》@汽水音乐 https://qishui.douyin.com/s/ia4MqU3p/
+                // 过滤出链接
+                const url = link.match(/https:\/\/[^\s]+/)[0];
+                // 使用CORS代理服务
+                const corsProxy = 'https://corsproxy.io/?';
+                const proxyUrl = corsProxy + encodeURIComponent(url);
+
+                // 发送请求
+                const response = await fetch(proxyUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        "sec-ch-ua": "\"Chromium\";v=\"136\", \"Google Chrome\";v=\"136\", \"Not.A/Brand\";v=\"99\"",
+                        "sec-ch-ua-mobile": "?0",
+                        "sec-ch-ua-platform": "\"Windows\"",
+                        "sec-fetch-dest": "document",
+                        "sec-fetch-mode": "navigate",
+                        "sec-fetch-site": "none",
+                        "sec-fetch-user": "?1",
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+                }
+
+                const html = await response.text();
+
+                // 创建一个DOM解析器
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // 获取所有script标签
+                const scripts = doc.getElementsByTagName('script');
+                let musicData = null;
+
+                console.log('正在解析歌曲信息')
+                // 遍历所有script标签，查找包含音乐信息的脚本
+                for (const script of scripts) {
+                    const content = script.textContent || script.innerText;
+                    if (content.includes('_ROUTER_DATA')) {
+                        try {
+                            // 提取JSON数据
+                            const match = content.match(/_ROUTER_DATA\s*=\s*({[\s\S]*?});/);
+                            if (match && match[1]) {
+                                const jsonData = JSON.parse(match[1]);
+                                console.log('提取的数据:', jsonData);
+
+                                // 从路由数据中提取音乐信息
+                                const musicInfo = jsonData?.loaderData?.track_page || {};
+                                const { audioWithLyricsOption } = musicInfo
+                                if (musicInfo) {
+                                    musicData = {
+                                        title: audioWithLyricsOption.trackName || '未知歌曲',
+                                        artist: audioWithLyricsOption.artistName || '未知歌手',
+                                        album: audioWithLyricsOption.trackInfo.album.name || '未知专辑',
+                                        cover: audioWithLyricsOption.coverURL || 'https://via.placeholder.com/120',
+                                        url: audioWithLyricsOption.url ? encodeURI(decodeURI(audioWithLyricsOption.url)) : ''
+                                    };
+
+                                    // 异步 解决方案一：使用 fetch + Blob 创建音频对象（可设置 referrerPolicy）
+                                    fetch(musicData.url, {
+                                        referrerPolicy: 'no-referrer', // 不发送 Referer
+                                        mode: 'cors', // 如果目标服务器支持跨域资源访问（CORS）
+                                    }).then(res => {
+                                        if (!res.ok) throw new Error('音频加载失败');
+                                        return res.blob();
+                                    })
+                                        .then(blob => {
+                                            const blobUrl = URL.createObjectURL(blob);
+                                            // 更新音频播放器
+                                            elements.musicPlayer.querySelector('source').src = blobUrl;
+                                            elements.musicPlayer.load();
+                                        })
+                                        .catch(err => {
+                                            console.error('音频加载失败:', err);
+                                        });
+
+                                    return musicData;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('解析script内容失败:', error);
+                        }
+                    }
+                }
+
+
+                if (!musicData) {
+                    throw new Error('未找到音乐信息');
+                }
+                console.log('解析完成', musicData)
+
+
+
+                throw new Error('无法解析音乐信息')
+            } catch (error) {
+                console.error('解析链接失败:', error);
+                throw new Error(`解析失败: ${error.message}`);
+            }
+
+        }
+
+        /**
+         * 开始下载音乐
+         * @param {MusicInfo} musicInfo - 音乐信息
+         * @returns {Promise<void>}
+         */
+        async function startDownload(musicInfo) {
+            if (!musicInfo || !musicInfo.url) return;
+
+            // 创建下载任务
+            const taskId = Date.now().toString();
+            const task = {
+                id: taskId,
+                name: `${musicInfo.title} - ${musicInfo.artist}`,
+                size: '未知大小',
+                progress: 0,
+                status: 'downloading'
+            };
+            state.downloads.set(taskId, task);
+
+            // 创建下载项UI
+            const template = elements.downloadItemTemplate;
+            const downloadItem = document.importNode(template.content, true).querySelector('.download-item');
+            downloadItem.dataset.taskId = taskId;
+
+            // 设置下载项信息
+            downloadItem.querySelector('.download-name').textContent = task.name;
+            downloadItem.querySelector('.download-size').textContent = task.size;
+
+            // 添加控制按钮事件
+            const pauseButton = downloadItem.querySelector('.pause-button');
+            const cancelButton = downloadItem.querySelector('.cancel-button');
+            pauseButton.addEventListener('click', () => pauseDownload(taskId));
+            cancelButton.addEventListener('click', () => cancelDownload(taskId));
+
+            // 添加到下载列表
+            elements.downloadList.appendChild(downloadItem);
+
+            try {
+                // 开始下载
+                const response = await fetch(musicInfo.url, {
+                    referrerPolicy: 'no-referrer',
+                    mode: 'cors'
+                });
+
+                if (!response.ok) throw new Error('下载失败');
+
+                const contentLength = response.headers.get('content-length');
+                if (contentLength) {
+                    task.size = `${(parseInt(contentLength) / (1024 * 1024)).toFixed(2)} MB`;
+                    downloadItem.querySelector('.download-size').textContent = task.size;
+                }
+
+                const reader = response.body.getReader();
+                let receivedLength = 0;
+                const chunks = []; // ✅ 保存数据块
+
+                // 读取数据流
+                while (true) {
+                    const { done, value } = await reader.read();
+
+                    if (done) {
+                        // 下载完成
+                        updateDownloadProgress(taskId, 100);
+                        break;
+                    }
+
+                    // 更新进度
+                    receivedLength += value.length;
+                    chunks.push(value); // ✅ 收集 chunk 数据
+                    if (contentLength) {
+                        const progress = (receivedLength / parseInt(contentLength)) * 100;
+                        updateDownloadProgress(taskId, progress && progress.toFixed(2));
+                    }
+
+                    // 检查是否已取消或暂停
+                    const currentTask = state.downloads.get(taskId);
+                    if (currentTask.status === 'cancelled') {
+                        reader.cancel();
+                        break;
+                    }
+                    if (currentTask.status === 'paused') {
+                        await new Promise(resolve => {
+                            const checkInterval = setInterval(() => {
+                                const task = state.downloads.get(taskId);
+                                if (task.status === 'downloading' || task.status === 'cancelled') {
+                                    clearInterval(checkInterval);
+                                    resolve();
+                                }
+                            }, 100);
+                        });
+                    }
+                }
+
+                // 保存文件
+                if (state.downloads.get(taskId).status !== 'cancelled') {
+                    const blob = new Blob(chunks, { type: 'audio/mpeg' }); // 可以根据实际类型调整;
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${musicInfo.title} - ${musicInfo.artist}.mp3`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+            } catch (error) {
+                console.error('下载出错:', error);
+                task.status = 'error';
+                state.downloads.set(taskId, task);
+                const progressText = downloadItem.querySelector('.progress-text');
+                if (progressText) progressText.textContent = '下载失败';
+            }
+        }
+
+        /**
+         * 更新下载进度
+         * @param {string} taskId - 下载任务ID
+         * @param {number} progress - 下载进度（0-100）
+         */
+        function updateDownloadProgress(taskId, progress) {
+            const task = state.downloads.get(taskId);
+            if (!task) return;
+
+            // 更新任务进度
+            task.progress = Math.min(100, Math.max(0, progress));
+            state.downloads.set(taskId, task);
+
+            // 更新UI显示
+            const downloadItem = document.querySelector(`[data-task-id="${taskId}"]`);
+            if (downloadItem) {
+                const progressFill = downloadItem.querySelector('.progress-fill');
+                const progressText = downloadItem.querySelector('.progress-text');
+                if (progressFill) progressFill.style.width = `${progress}%`;
+                if (progressText) progressText.textContent = `${progress}%`;
+
+                // 如果下载完成，更新状态并添加到历史记录
+                if (progress >= 100) {
+                    task.status = 'completed';
+                    state.downloads.set(taskId, task);
+                    addToHistory(state.currentMusic);
+                }
+            }
+        }
+
+        /**
+         * 暂停下载
+         * @param {string} taskId - 下载任务ID
+         */
+        function pauseDownload(taskId) {
+            const task = state.downloads.get(taskId);
+            if (!task) return;
+
+            // 更新任务状态
+            task.status = task.status === 'paused' ? 'downloading' : 'paused';
+            state.downloads.set(taskId, task);
+
+            // 更新UI显示
+            const downloadItem = document.querySelector(`[data-task-id="${taskId}"]`);
+            if (downloadItem) {
+                const pauseButton = downloadItem.querySelector('.pause-button i');
+                if (pauseButton) {
+                    pauseButton.className = task.status === 'paused' ?
+                        'ri-play-line' : 'ri-pause-line';
+                }
+            }
+        }
+
+        /**
+         * 取消下载
+         * @param {string} taskId - 下载任务ID
+         */
+        function cancelDownload(taskId) {
+            const task = state.downloads.get(taskId);
+            if (!task) return;
+
+            // 更新任务状态
+            task.status = 'cancelled';
+            state.downloads.set(taskId, task);
+
+            // 从下载列表中移除
+            const downloadItem = document.querySelector(`[data-task-id="${taskId}"]`);
+            if (downloadItem) {
+                downloadItem.remove();
+            }
+
+            // 从状态管理中移除
+            state.downloads.delete(taskId);
+        }
+
+        /**
+         * 添加到下载历史
+         * @param {MusicInfo} musicInfo - 音乐信息
+         */
+        function addToHistory(musicInfo) {
+            if (!musicInfo) return;
+
+            // 创建历史记录对象
+            const historyItem = {
+                id: Date.now().toString(),
+                title: musicInfo.title,
+                artist: musicInfo.artist,
+                cover: musicInfo.cover,
+                downloadDate: new Date().toISOString()
+            };
+
+            // 添加到历史记录列表
+            state.history.unshift(historyItem);
+
+            // 限制历史记录数量
+            if (state.history.length > 50) {
+                state.history.pop();
+            }
+
+            // 更新本地存储
+            localStorage.setItem('downloadHistory', JSON.stringify(state.history));
+
+            // 更新UI显示
+            const historyList = document.getElementById('historyList');
+            if (historyList) {
+                const historyItemElement = document.createElement('div');
+                historyItemElement.className = 'download-item';
+                historyItemElement.innerHTML = `
+                    <div class="download-item-info">
+                        <span class="download-name">${historyItem.title} - ${historyItem.artist}</span>
+                        <span class="download-size">${new Date(historyItem.downloadDate).toLocaleString()}</span>
+                    </div>
+                `;
+                historyList.insertBefore(historyItemElement, historyList.firstChild);
+            }
+        }
+
+        // 事件监听器
+        elements.parseButton.addEventListener('click', async () => {
+            console.log('click')
+            const link = elements.musicLink.value.trim();
+            if (!link) {
+                alert('请输入音乐分享链接');
+                return;
+            }
+
+            try {
+                elements.parseStatus.classList.remove('hidden');
+                const musicInfo = await parseMusicLink(link);
+                state.currentMusic = musicInfo;
+                updateMusicInfoDisplay(musicInfo);
+            } catch (error) {
+                alert(`解析失败：${error.message}`);
+            } finally {
+                elements.parseStatus.classList.add('hidden');
+            }
+        });
+
+        elements.downloadButton.addEventListener('click', async () => {
+            if (!state.currentMusic) {
+                alert('请先解析音乐链接');
+                return;
+            }
+
+            try {
+                await startDownload(state.currentMusic);
+                addToHistory(state.currentMusic);
+            } catch (error) {
+                alert(`下载失败：${error.message}`);
+            }
+        });
+
+        /**
+         * 更新音乐信息显示
+         * @param {MusicInfo} musicInfo - 音乐信息
+         */
+        function updateMusicInfoDisplay(musicInfo) {
+            elements.musicCover.src = musicInfo.cover;
+            elements.musicTitle.textContent = musicInfo.title;
+            elements.musicArtist.textContent = musicInfo.artist;
+            elements.musicAlbum.textContent = musicInfo.album;
+            elements.musicInfoSection.classList.remove('hidden');
+        }
+
+        // 初始化下载管理器和历史记录
+        function init() {
+            // TODO: 实现初始化逻辑
+            console.log('应用初始化完成');
+        }
+
+        // 启动应用
+        init();
+    </script>
+</body>
+
+</html>
