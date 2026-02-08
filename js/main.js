@@ -103,7 +103,7 @@ async function parseMusicLink(link) {
   try {
     // 从输入中提取首个 https 链接
     const url = link.match(/https:\/\/[^\s]+/)[0];
-    const corsProxy = "http:///qiuyu520.fun:7777/?url=";
+    const corsProxy = "http://qiuyu520.fun/cors/?url=";
     const proxyUrl = corsProxy + encodeURIComponent(url);
 
     const response = await fetch(proxyUrl, {
