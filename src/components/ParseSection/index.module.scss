@@ -1,0 +1,111 @@
+.card {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: var(--radius-xl);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+.search-card {
+  padding: clamp(16px, 3vw, 24px);
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.form-item {
+  margin-bottom: 0;
+}
+
+.music-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 58px;
+  padding: 0 16px;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  font-size: 15px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+
+  :global(.ant-input-prefix) {
+    margin-inline-end: 10px;
+  }
+
+  i {
+    color: var(--color-text-subtle);
+    font-size: 20px;
+  }
+}
+
+.music-input::placeholder {
+  color: #a1a1a6;
+}
+
+.music-input:hover,
+.music-input:focus,
+.music-input:focus-within {
+  border-color: rgba(0, 113, 227, 0.45);
+  box-shadow: 0 0 0 5px rgba(0, 113, 227, 0.12);
+}
+
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 58px;
+  padding: 0 24px;
+  color: #fff;
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--color-primary-hover), var(--color-primary));
+  box-shadow: var(--shadow-control);
+  cursor: pointer;
+  transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+  white-space: nowrap;
+}
+
+.primary-button:hover,
+.primary-button:focus-visible {
+  color: #fff !important;
+  border-color: transparent !important;
+  background: linear-gradient(180deg, var(--color-primary-hover), var(--color-primary)) !important;
+  filter: brightness(1.02);
+  transform: translateY(-1px);
+  outline: none;
+  box-shadow: 0 12px 30px rgba(0, 113, 227, 0.24);
+}
+
+.hint-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.hint-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .search-form {
+    grid-template-columns: 1fr;
+  }
+
+  .primary-button {
+    width: 100%;
+  }
+}

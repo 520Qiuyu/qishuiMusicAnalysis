@@ -1,0 +1,152 @@
+:root {
+  color: #1d1d1f;
+  background: #f5f5f7;
+  --app-font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial,
+    sans-serif;
+  --color-bg: #f5f5f7;
+  --color-bg-soft: #fbfbfd;
+  --color-card: rgba(255, 255, 255, 0.82);
+  --color-card-solid: #ffffff;
+  --color-text: #1d1d1f;
+  --color-text-muted: #6e6e73;
+  --color-text-subtle: #86868b;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-primary: #0071e3;
+  --color-primary-hover: #0077ed;
+  --color-success: #34c759;
+  --color-warning: #ff9f0a;
+  --color-danger: #ff3b30;
+  --shadow-card: 0 18px 50px rgba(0, 0, 0, 0.08);
+  --shadow-control: 0 8px 24px rgba(0, 113, 227, 0.18);
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --page-padding: clamp(18px, 4vw, 56px);
+  --content-width: 1120px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+  line-height: normal;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  height: fit-content;
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--app-font-family);
+  background:
+    radial-gradient(circle at 12% -10%, rgba(0, 113, 227, 0.16), transparent 32%),
+    radial-gradient(circle at 88% 6%, rgba(52, 199, 89, 0.14), transparent 30%),
+    linear-gradient(180deg, #fafafa 0%, var(--color-bg) 52%, #eeeeef 100%);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: bold;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.ant-app,
+.ant-btn,
+.ant-input,
+.ant-message,
+.ant-typography,
+.ant-notification,
+.ant-modal,
+.ant-popover,
+.ant-tooltip {
+  font-family: var(--app-font-family);
+}
+:root {
+  color: #1d1d1f;
+  background: #f5f5f7;
+  --app-font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial,
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+  line-height: normal;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: bold;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  height: fit-content;
+  margin: 0;
+  font-family: var(--app-font-family);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.ant-app,
+.ant-btn,
+.ant-input,
+.ant-message,
+.ant-typography,
+.ant-notification,
+.ant-modal,
+.ant-popover,
+.ant-tooltip {
+  font-family: var(--app-font-family);
+}

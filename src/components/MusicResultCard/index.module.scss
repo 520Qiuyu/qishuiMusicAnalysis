@@ -1,0 +1,266 @@
+.card {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: var(--radius-xl);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+.music-card {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  padding: clamp(18px, 3vw, 26px);
+}
+
+.cover-wrap {
+  position: relative;
+}
+
+.cover-wrap::after {
+  position: absolute;
+  inset: 18px -10px -10px 18px;
+  z-index: -1;
+  border-radius: 28px;
+  background: linear-gradient(150deg, rgba(0, 113, 227, 0.18), rgba(255, 159, 10, 0.16));
+  filter: blur(16px);
+  content: "";
+}
+
+.cover {
+  display: grid;
+  width: 168px;
+  height: 168px;
+  margin: 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.66);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 36% 22%, rgba(255, 255, 255, 0.75), transparent 18%),
+    linear-gradient(150deg, #a7d8ff 0%, #ffd1dc 55%, #ffeab8 100%);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+
+  i {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 44px;
+    text-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.song-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--color-success);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 0 6px rgba(52, 199, 89, 0.12);
+}
+
+.song-title {
+  margin: 0 0 10px;
+  font-size: clamp(24px, 4vw, 38px);
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.song-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.song-meta span:not(:last-child)::after {
+  margin-left: 8px;
+  color: #c7c7cc;
+  content: "·";
+}
+
+.player {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  max-width: 620px;
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(245, 245, 247, 0.88);
+}
+
+.icon-button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: var(--color-text);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+}
+
+.icon-button:disabled {
+  color: var(--color-text-subtle);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.icon-button :global(.ri-loader-4-line) {
+  animation: spin 1s linear infinite;
+}
+
+.progress {
+  position: relative;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.progress-fill {
+  width: 46%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-primary), #4aa3ff);
+}
+
+.progress-input {
+  position: absolute;
+  inset: -8px 0;
+  width: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.progress-input:disabled {
+  cursor: not-allowed;
+}
+
+.buffering-text {
+  color: var(--color-primary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.time {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.download-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.download-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  color: #fff;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #39d36a, var(--color-success));
+  box-shadow: 0 10px 28px rgba(52, 199, 89, 0.22);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.download-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.is-secondary {
+  color: var(--color-primary);
+  border: 1px solid rgba(0, 113, 227, 0.16);
+  background: rgba(0, 113, 227, 0.08);
+  box-shadow: none;
+}
+
+@media (max-width: 980px) {
+  .music-card {
+    grid-template-columns: 140px minmax(0, 1fr);
+  }
+
+  .cover {
+    width: 140px;
+    height: 140px;
+    border-radius: 26px;
+  }
+
+  .download-actions {
+    grid-column: 2;
+    width: max-content;
+  }
+}
+
+@media (max-width: 640px) {
+  .music-card {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .cover-wrap {
+    justify-self: center;
+  }
+
+  .cover {
+    width: min(100%, 240px);
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: 34px;
+  }
+
+  .download-actions {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .download-button {
+    width: 100%;
+  }
+
+  .player {
+    grid-template-columns: auto 1fr;
+  }
+
+  .buffering-text,
+  .time {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

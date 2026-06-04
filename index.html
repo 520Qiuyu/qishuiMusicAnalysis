@@ -1,118 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="汽水音乐解析下载工具 - 一个便捷的音乐资源获取工具">
-    <title>汽水音乐解析下载工具</title>
-    <!-- 引入字体图标库 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="汽水音乐链接解析与下载工具" />
+  <title>汽水音乐解析下载工具</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" />
 </head>
 
 <body>
-    <div class="app-container">
-        <!-- 头部区域 -->
-        <header class="app-header">
-            <h1 class="app-title">汽水音乐解析下载工具</h1>
-            <p class="app-description">支持多平台音乐资源解析下载，简单易用的音乐资源获取工具</p>
-        </header>
-
-        <!-- 主要内容区域 -->
-        <main class="app-main">
-            <!-- 链接输入区域 -->
-            <section class="link-input-section">
-                <div class="input-group">
-                    <input type="text" id="musicLink" class="music-link-input" placeholder="请输入音乐分享链接"
-                        aria-label="音乐链接输入框">
-                    <button type="button" id="parseButton" class="parse-button" aria-label="解析链接">
-                        <i class="ri-search-line"></i> 解析
-                    </button>
-                </div>
-            </section>
-
-            <!-- 解析状态展示区域 -->
-            <section class="parse-status-section" aria-live="polite">
-                <div id="parseStatus" class="parse-status hidden">
-                    <div class="status-icon">
-                        <i class="ri-loader-4-line spinning"></i>
-                    </div>
-                    <div class="status-text">正在解析中...</div>
-                </div>
-            </section>
-
-            <!-- 音乐信息展示区域 -->
-            <section class="music-info-section hidden" aria-label="音乐信息展示区域">
-                <div class="music-info-container">
-                    <div class="music-cover">
-                        <img src="" alt="音乐封面" id="musicCover">
-                    </div>
-                    <div class="music-details">
-                        <h2 class="music-title" id="musicTitle"></h2>
-                        <p class="music-artist" id="musicArtist"></p>
-                        <p class="music-album" id="musicAlbum"></p>
-                        <div class="audio-player">
-                            <audio id="musicPlayer" controls referrerpolicy="no-referrer">
-                                <source src="" type="audio/mpeg">
-                                您的浏览器不支持音频播放。
-                            </audio>
-                        </div>
-                    </div>
-                    <div class="download-controls">
-                        <button type="button" class="download-button" id="downloadButton">
-                            <i class="ri-download-2-line"></i> 下载
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 下载管理区域 -->
-            <section class="download-manager-section" aria-label="下载管理区域">
-                <h2 class="section-title">下载管理</h2>
-                <div class="download-list" id="downloadList">
-                    <!-- 下载项模板 -->
-                    <template id="downloadItemTemplate">
-                        <div class="download-item">
-                            <div class="download-item-info">
-                                <span class="download-name"></span>
-                                <span class="download-size"></span>
-                            </div>
-                            <div class="download-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill"></div>
-                                </div>
-                                <span class="progress-text"></span>
-                            </div>
-                            <div class="download-controls">
-                                <button class="control-button pause-button" aria-label="暂停下载">
-                                    <i class="ri-pause-line"></i>
-                                </button>
-                                <button class="control-button cancel-button" aria-label="取消下载">
-                                    <i class="ri-close-line"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </section>
-
-            <!-- 历史记录区域 -->
-            <section class="history-section" aria-label="下载历史记录">
-                <h2 class="section-title">下载历史</h2>
-                <div class="history-list" id="historyList">
-                    <!-- 历史记录将通过JavaScript动态添加 -->
-                </div>
-            </section>
-        </main>
-
-        <!-- 底部区域 -->
-        <footer class="app-footer">
-            <p class="footer-text">© 2024 汽水音乐解析下载工具</p>
-        </footer>
-    </div>
-
-    <script src="js/main.js" defer></script>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
 </body>
 
 </html>

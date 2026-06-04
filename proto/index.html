@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="汽水音乐解析下载工具 Vite + React + Ant Design 原型">
+    <title>汽水音乐解析下载工具 - 原型</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
+    <style>
+        :root {
+            --color-bg: #f5f5f7;
+            --color-bg-soft: #fbfbfd;
+            --color-card: rgba(255, 255, 255, 0.82);
+            --color-card-solid: #ffffff;
+            --color-text: #1d1d1f;
+            --color-text-muted: #6e6e73;
+            --color-text-subtle: #86868b;
+            --color-border: rgba(0, 0, 0, 0.08);
+            --color-primary: #0071e3;
+            --color-primary-hover: #0077ed;
+            --color-success: #34c759;
+            --color-warning: #ff9f0a;
+            --color-danger: #ff3b30;
+            --shadow-card: 0 18px 50px rgba(0, 0, 0, 0.08);
+            --shadow-control: 0 8px 24px rgba(0, 113, 227, 0.18);
+            --radius-xl: 28px;
+            --radius-lg: 22px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --page-padding: clamp(18px, 4vw, 56px);
+            --content-width: 1120px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--color-text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            background:
+                radial-gradient(circle at 12% -10%, rgba(0, 113, 227, 0.16), transparent 32%),
+                radial-gradient(circle at 88% 6%, rgba(52, 199, 89, 0.14), transparent 30%),
+                linear-gradient(180deg, #fafafa 0%, var(--color-bg) 52%, #eeeeef 100%);
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+        }
+
+        .page-shell {
+            width: min(100%, var(--content-width));
+            margin: 0 auto;
+            padding: 28px var(--page-padding) 40px;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 12px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 46px;
+            padding: 10px 10px 10px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.62);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.64);
+            box-shadow: 0 10px 34px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            place-items: center;
+            color: #fff;
+            border-radius: 11px;
+            background: linear-gradient(145deg, #1d8cff, #0064d2);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 8px 18px rgba(0, 113, 227, 0.22);
+        }
+
+        .brand-title {
+            overflow: hidden;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pill-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 36px;
+            padding: 0 14px;
+            color: var(--color-text);
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: transform 180ms ease, background-color 180ms ease;
+        }
+
+        .pill-button:hover,
+        .pill-button:focus-visible {
+            background: rgba(0, 0, 0, 0.07);
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        .pill-button.is-primary {
+            color: #fff;
+            background: var(--color-text);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 0.92fr) minmax(320px, 0.68fr);
+            gap: clamp(22px, 4vw, 44px);
+            align-items: end;
+            margin-bottom: 26px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding: 7px 12px;
+            color: #155aa8;
+            border: 1px solid rgba(0, 113, 227, 0.14);
+            border-radius: 999px;
+            background: rgba(0, 113, 227, 0.08);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .hero-title {
+            max-width: 760px;
+            margin: 0;
+            font-size: clamp(36px, 6.2vw, 72px);
+            line-height: 1.15;
+            letter-spacing: -0.065em;
+        }
+
+        .hero-title span {
+            color: var(--color-primary);
+        }
+
+        .hero-desc {
+            max-width: 620px;
+            margin: 20px 0 0;
+            color: var(--color-text-muted);
+            font-size: clamp(16px, 2vw, 20px);
+            line-height: 1.65;
+            letter-spacing: -0.018em;
+        }
+
+        .hero-panel {
+            position: relative;
+            min-height: 260px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: var(--radius-xl);
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.58));
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+        }
+
+        .hero-panel::before {
+            position: absolute;
+            inset: -60px -44px auto auto;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 113, 227, 0.22), transparent 68%);
+            content: "";
+        }
+
+        .floating-card {
+            position: absolute;
+            right: 26px;
+            bottom: 26px;
+            left: 26px;
+            padding: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.76);
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.08);
+        }
+
+        .mini-cover-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .mini-cover {
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            background:
+                linear-gradient(140deg, rgba(255, 255, 255, 0.25), transparent),
+                linear-gradient(160deg, #9bd8ff, #f9b4c6 58%, #f7ead0);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .mini-title {
+            margin: 0 0 4px;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .mini-meta {
+            margin: 0;
+            color: var(--color-text-muted);
+            font-size: 13px;
+        }
+
+        .wave {
+            display: grid;
+            grid-template-columns: repeat(24, 1fr);
+            align-items: center;
+            gap: 3px;
+            height: 40px;
+        }
+
+        .wave span {
+            display: block;
+            height: var(--height);
+            border-radius: 999px;
+            background: rgba(0, 113, 227, 0.28);
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 18px;
+        }
+
+        .card {
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            border-radius: var(--radius-xl);
+            background: var(--color-card);
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+        }
+
+        .search-card {
+            padding: clamp(16px, 3vw, 24px);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .input-shell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 58px;
+            padding: 0 16px;
+            border: 1px solid var(--color-border);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.88);
+            transition: border-color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .input-shell:focus-within {
+            border-color: rgba(0, 113, 227, 0.45);
+            box-shadow: 0 0 0 5px rgba(0, 113, 227, 0.12);
+        }
+
+        .input-shell i {
+            color: var(--color-text-subtle);
+            font-size: 20px;
+        }
+
+        .music-input {
+            width: 100%;
+            min-width: 0;
+            color: var(--color-text);
+            border: 0;
+            outline: none;
+            background: transparent;
+            font-size: 15px;
+        }
+
+        .music-input::placeholder {
+            color: #a1a1a6;
+        }
+
+        .primary-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 58px;
+            padding: 0 24px;
+            color: #fff;
+            border-radius: 18px;
+            background: linear-gradient(180deg, var(--color-primary-hover), var(--color-primary));
+            box-shadow: var(--shadow-control);
+            cursor: pointer;
+            transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+            white-space: nowrap;
+        }
+
+        .primary-button:hover,
+        .primary-button:focus-visible {
+            filter: brightness(1.02);
+            transform: translateY(-1px);
+            outline: none;
+            box-shadow: 0 12px 30px rgba(0, 113, 227, 0.24);
+        }
+
+        .hint-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .hint-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 10px;
+            color: var(--color-text-muted);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 340px;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .music-card {
+            display: grid;
+            grid-template-columns: 168px minmax(0, 1fr) auto;
+            gap: 24px;
+            align-items: center;
+            padding: clamp(18px, 3vw, 26px);
+        }
+
+        .cover-wrap {
+            position: relative;
+        }
+
+        .cover-wrap::after {
+            position: absolute;
+            inset: 18px -10px -10px 18px;
+            z-index: -1;
+            border-radius: 28px;
+            background: linear-gradient(150deg, rgba(0, 113, 227, 0.18), rgba(255, 159, 10, 0.16));
+            filter: blur(16px);
+            content: "";
+        }
+
+        .cover {
+            display: grid;
+            width: 168px;
+            height: 168px;
+            place-items: center;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.66);
+            border-radius: 32px;
+            background:
+                radial-gradient(circle at 36% 22%, rgba(255, 255, 255, 0.75), transparent 18%),
+                linear-gradient(150deg, #a7d8ff 0%, #ffd1dc 55%, #ffeab8 100%);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .cover i {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 44px;
+            text-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+        }
+
+        .song-kicker {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: var(--color-success);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .song-title {
+            margin: 0 0 10px;
+            font-size: clamp(24px, 4vw, 38px);
+            line-height: 1;
+            letter-spacing: -0.055em;
+        }
+
+        .song-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0 0 18px;
+            color: var(--color-text-muted);
+            font-size: 14px;
+        }
+
+        .song-meta span:not(:last-child)::after {
+            margin-left: 8px;
+            color: #c7c7cc;
+            content: "·";
+        }
+
+        .player {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: center;
+            max-width: 620px;
+            padding: 12px;
+            border-radius: 18px;
+            background: rgba(245, 245, 247, 0.88);
+        }
+
+        .icon-button {
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            color: var(--color-text);
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+        }
+
+        .progress {
+            position: relative;
+            height: 7px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.08);
+        }
+
+        .progress-fill {
+            width: 46%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--color-primary), #4aa3ff);
+        }
+
+        .time {
+            color: var(--color-text-muted);
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .download-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 48px;
+            padding: 0 18px;
+            color: #fff;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #39d36a, var(--color-success));
+            box-shadow: 0 10px 28px rgba(52, 199, 89, 0.22);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .side-stack {
+            display: grid;
+            gap: 18px;
+        }
+
+        .panel {
+            padding: 20px;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.035em;
+        }
+
+        .section-subtitle {
+            margin: 5px 0 0;
+            color: var(--color-text-muted);
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--color-success);
+            box-shadow: 0 0 0 6px rgba(52, 199, 89, 0.12);
+        }
+
+        .download-list,
+        .history-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .task-item,
+        .history-item {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .task-main,
+        .history-item {
+            grid-template-columns: 1fr auto;
+            align-items: center;
+        }
+
+        .task-main {
+            display: grid;
+            gap: 10px;
+        }
+
+        .task-name,
+        .history-name {
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .task-meta,
+        .history-meta {
+            color: var(--color-text-muted);
+            font-size: 12px;
+        }
+
+        .task-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .small-action {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            place-items: center;
+            color: var(--color-text-muted);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+        }
+
+        .small-action.is-danger {
+            color: var(--color-danger);
+        }
+
+        .empty-state {
+            display: grid;
+            place-items: center;
+            min-height: 152px;
+            color: var(--color-text-muted);
+            text-align: center;
+            border: 1px dashed rgba(0, 0, 0, 0.12);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.48);
+        }
+
+        .empty-state i {
+            display: block;
+            margin-bottom: 8px;
+            color: #a1a1a6;
+            font-size: 28px;
+        }
+
+        .feature-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .feature-card {
+            padding: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.64);
+        }
+
+        .feature-card i {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            margin-bottom: 12px;
+            place-items: center;
+            color: var(--color-primary);
+            border-radius: 13px;
+            background: rgba(0, 113, 227, 0.1);
+        }
+
+        .feature-card h3 {
+            margin: 0 0 6px;
+            font-size: 15px;
+            letter-spacing: -0.02em;
+        }
+
+        .feature-card p {
+            margin: 0;
+            color: var(--color-text-muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: calc(100vw - 44px);
+            padding: 13px 16px;
+            color: #fff;
+            border-radius: 16px;
+            background: rgba(29, 29, 31, 0.9);
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+            opacity: 0;
+            transform: translateY(12px);
+            pointer-events: none;
+            transition: opacity 220ms ease, transform 220ms ease;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .toast.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 28px;
+            color: var(--color-text-muted);
+            font-size: 12px;
+        }
+
+        @media (max-width: 980px) {
+
+            .hero,
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-panel {
+                min-height: 220px;
+            }
+
+            .music-card {
+                grid-template-columns: 140px minmax(0, 1fr);
+            }
+
+            .cover {
+                width: 140px;
+                height: 140px;
+                border-radius: 26px;
+            }
+
+            .download-button {
+                grid-column: 2;
+                width: max-content;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .page-shell {
+                padding-top: 14px;
+            }
+
+            .topbar {
+                top: 8px;
+                margin-bottom: 34px;
+            }
+
+            .brand-title {
+                max-width: 148px;
+            }
+
+            .topbar-actions .pill-button:not(.is-primary) {
+                display: none;
+            }
+
+            .hero {
+                gap: 18px;
+            }
+
+            .hero-title {
+                font-size: clamp(34px, 12vw, 48px);
+            }
+
+            .hero-desc {
+                margin-top: 14px;
+                font-size: 15px;
+            }
+
+            .hero-panel {
+                display: none;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+
+            .primary-button {
+                width: 100%;
+            }
+
+            .music-card {
+                grid-template-columns: 1fr;
+                text-align: left;
+            }
+
+            .cover-wrap {
+                justify-self: center;
+            }
+
+            .cover {
+                width: min(100%, 240px);
+                height: auto;
+                aspect-ratio: 1;
+                border-radius: 34px;
+            }
+
+            .download-button {
+                grid-column: auto;
+                width: 100%;
+            }
+
+            .player {
+                grid-template-columns: auto 1fr;
+            }
+
+            .player .time {
+                grid-column: 1 / -1;
+                justify-self: end;
+            }
+
+            .feature-row {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-shell">
+        <nav class="topbar" aria-label="页面导航">
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true">
+                    <i class="ri-music-2-line"></i>
+                </span>
+                <span class="brand-title">汽水音乐解析下载工具</span>
+            </div>
+            <div class="topbar-actions">
+                <button class="pill-button" type="button" aria-label="查看下载历史">
+                    <i class="ri-history-line"></i>
+                    历史
+                </button>
+                <button class="pill-button is-primary" type="button" aria-label="批量解析音乐链接">
+                    <i class="ri-list-check-3"></i>
+                    批量解析
+                </button>
+            </div>
+        </nav>
+
+        <header class="hero">
+            <div>
+                <div class="eyebrow">
+                    <i class="ri-sparkling-2-line" aria-hidden="true"></i>
+                    汽水音乐链接解析
+                </div>
+                <h1 class="hero-title">粘贴分享链接，快速获取<span>音乐资源</span>。</h1>
+                <p class="hero-desc">
+                    支持识别汽水音乐分享内容，解析歌曲信息、封面与播放地址，让试听、下载和历史管理都更清晰顺手。
+                </p>
+            </div>
+
+            <aside class="hero-panel" aria-label="播放预览装饰卡片">
+                <div class="floating-card">
+                    <div class="mini-cover-row">
+                        <div class="mini-cover" aria-hidden="true"></div>
+                        <div>
+                            <p class="mini-title">一点</p>
+                            <p class="mini-meta">徐梦洁 / Muyoi · 解析完成</p>
+                        </div>
+                    </div>
+                    <div class="wave" aria-hidden="true">
+                        <span style="--height: 18px"></span>
+                        <span style="--height: 28px"></span>
+                        <span style="--height: 14px"></span>
+                        <span style="--height: 34px"></span>
+                        <span style="--height: 22px"></span>
+                        <span style="--height: 38px"></span>
+                        <span style="--height: 16px"></span>
+                        <span style="--height: 30px"></span>
+                        <span style="--height: 22px"></span>
+                        <span style="--height: 36px"></span>
+                        <span style="--height: 18px"></span>
+                        <span style="--height: 26px"></span>
+                        <span style="--height: 38px"></span>
+                        <span style="--height: 16px"></span>
+                        <span style="--height: 30px"></span>
+                        <span style="--height: 22px"></span>
+                        <span style="--height: 34px"></span>
+                        <span style="--height: 18px"></span>
+                        <span style="--height: 28px"></span>
+                        <span style="--height: 14px"></span>
+                        <span style="--height: 32px"></span>
+                        <span style="--height: 20px"></span>
+                        <span style="--height: 36px"></span>
+                        <span style="--height: 18px"></span>
+                    </div>
+                </div>
+            </aside>
+        </header>
+
+        <main class="app-grid">
+            <section class="card search-card" aria-label="音乐链接解析">
+                <form class="search-form" id="parseForm">
+                    <label class="input-shell" for="musicLink">
+                        <i class="ri-link-m" aria-hidden="true"></i>
+                        <input class="music-input" id="musicLink" type="text"
+                            value="《一点》@汽水音乐 https://qishui.douyin.com/s/ia4MqU3p/"
+                            placeholder="粘贴汽水音乐分享链接，支持带文案的完整分享内容" aria-label="音乐分享链接">
+                    </label>
+                    <button class="primary-button" type="submit" aria-label="解析音乐链接">
+                        <i class="ri-search-line" aria-hidden="true"></i>
+                        解析
+                    </button>
+                </form>
+                <div class="hint-row" aria-label="功能提示">
+                    <span class="hint-chip">
+                        <i class="ri-shield-check-line" aria-hidden="true"></i>
+                        本地历史记录
+                    </span>
+                    <span class="hint-chip">
+                        <i class="ri-smartphone-line" aria-hidden="true"></i>
+                        移动端适配
+                    </span>
+                    <span class="hint-chip">
+                        <i class="ri-download-cloud-2-line" aria-hidden="true"></i>
+                        单文件构建
+                    </span>
+                </div>
+            </section>
+
+            <div class="content-grid">
+                <section class="card music-card" aria-label="音乐解析结果">
+                    <div class="cover-wrap">
+                        <div class="cover" aria-label="歌曲封面占位图">
+                            <i class="ri-music-2-fill" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="song-kicker">
+                            <span class="status-dot" aria-hidden="true"></span>
+                            解析完成
+                        </div>
+                        <h2 class="song-title">一点</h2>
+                        <p class="song-meta">
+                            <span>徐梦洁 / Muyoi</span>
+                            <span>一点</span>
+                            <span>MP3 · 320kbps</span>
+                        </p>
+                        <div class="player" aria-label="音乐播放器原型">
+                            <button class="icon-button" type="button" aria-label="播放或暂停">
+                                <i class="ri-play-fill" aria-hidden="true"></i>
+                            </button>
+                            <div class="progress" aria-hidden="true">
+                                <div class="progress-fill"></div>
+                            </div>
+                            <span class="time">0:27 / 1:00</span>
+                        </div>
+                    </div>
+                    <button class="download-button" id="downloadButton" type="button" aria-label="下载当前歌曲">
+                        <i class="ri-download-2-line" aria-hidden="true"></i>
+                        下载
+                    </button>
+                </section>
+
+                <aside class="side-stack">
+                    <section class="card panel" aria-label="下载管理">
+                        <div class="section-head">
+                            <div>
+                                <h2 class="section-title">下载管理</h2>
+                                <p class="section-subtitle">实时查看队列与进度</p>
+                            </div>
+                            <span class="status-dot" aria-hidden="true"></span>
+                        </div>
+                        <div class="download-list">
+                            <article class="task-item">
+                                <div class="task-main">
+                                    <div>
+                                        <div class="task-name">一点 - 徐梦洁 / Muyoi.mp3</div>
+                                        <div class="task-meta">4.8 MB · 下载中 46%</div>
+                                    </div>
+                                    <div class="task-actions">
+                                        <button class="small-action" type="button" aria-label="暂停下载">
+                                            <i class="ri-pause-line" aria-hidden="true"></i>
+                                        </button>
+                                        <button class="small-action is-danger" type="button" aria-label="取消下载">
+                                            <i class="ri-close-line" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="progress" aria-hidden="true">
+                                    <div class="progress-fill"></div>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="card panel" aria-label="下载历史">
+                        <div class="section-head">
+                            <div>
+                                <h2 class="section-title">下载历史</h2>
+                                <p class="section-subtitle">最多保留最近 50 条</p>
+                            </div>
+                        </div>
+                        <div class="history-list">
+                            <article class="history-item">
+                                <div>
+                                    <div class="history-name">慢慢喜欢你 - 莫文蔚</div>
+                                    <div class="history-meta">今天 08:42 · 已保存</div>
+                                </div>
+                                <i class="ri-check-line" aria-hidden="true"></i>
+                            </article>
+                            <article class="history-item">
+                                <div>
+                                    <div class="history-name">晴天 - 周杰伦</div>
+                                    <div class="history-meta">昨天 21:16 · 已保存</div>
+                                </div>
+                                <i class="ri-check-line" aria-hidden="true"></i>
+                            </article>
+                        </div>
+                    </section>
+                </aside>
+            </div>
+
+            <section class="feature-row" aria-label="后续功能扩展方向">
+                <article class="feature-card">
+                    <i class="ri-list-check-3" aria-hidden="true"></i>
+                    <h3>批量解析队列</h3>
+                    <p>后续可将多条分享链接加入队列，用 Ant Design Table 展示状态。</p>
+                </article>
+                <article class="feature-card">
+                    <i class="ri-folder-music-line" aria-hidden="true"></i>
+                    <h3>音乐资料管理</h3>
+                    <p>支持封面、歌手、专辑、音质等元信息查看与收藏。</p>
+                </article>
+                <article class="feature-card">
+                    <i class="ri-settings-3-line" aria-hidden="true"></i>
+                    <h3>下载偏好设置</h3>
+                    <p>预留格式、音质、命名规则等配置入口，便于功能扩展。</p>
+                </article>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <span>© 2024 汽水音乐解析下载工具</span>
+            <span>Prototype for Vite / React / Ant Design</span>
+        </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">
+        <i class="ri-checkbox-circle-line" aria-hidden="true"></i>
+        <span id="toastText">操作成功</span>
+    </div>
+
+    <script>
+        const parseForm = document.getElementById("parseForm");
+        const downloadButton = document.getElementById("downloadButton");
+        const toast = document.getElementById("toast");
+        const toastText = document.getElementById("toastText");
+
+        /**
+         * 显示轻提示，用于原型交互反馈。
+         * @param {string} message - 要展示的提示内容
+         * @example
+         * showToast("解析完成，已更新音乐信息");
+         */
+        const showToast = message => {
+            toastText.textContent = message;
+            toast.classList.add("is-visible");
+
+            window.clearTimeout(showToast.timer);
+            showToast.timer = window.setTimeout(() => {
+                toast.classList.remove("is-visible");
+            }, 1800);
+        };
+
+        const handleParseSubmit = event => {
+            event.preventDefault();
+            showToast("解析完成，已更新音乐信息");
+        };
+
+        const handleDownloadClick = () => {
+            showToast("已加入下载队列");
+        };
+
+        parseForm.addEventListener("submit", handleParseSubmit);
+        downloadButton.addEventListener("click", handleDownloadClick);
+    </script>
+</body>
+
+</html>
