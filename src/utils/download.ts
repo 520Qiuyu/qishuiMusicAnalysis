@@ -17,6 +17,17 @@ export const getFileBlob = async (url: string) => {
   return blob;
 };
 
+export const downloadBlob = (blob: Blob, fileName: string) => {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = sanitizeFileName(fileName);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(objectUrl);
+};
+
 export const downloadTextFile = (content: string, fileName: string) => {
   const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
   const objectUrl = URL.createObjectURL(blob);

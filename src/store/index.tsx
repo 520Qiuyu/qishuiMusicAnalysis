@@ -1,13 +1,5 @@
-import {
-  createContext,
-  createElement,
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-  type PropsWithChildren,
-} from "react";
+import { useLocalStorageState } from "ahooks";
+import { createContext, useCallback, useContext, useRef, useState, type PropsWithChildren } from "react";
 
 export type MusicInfo = {
   title?: string;
@@ -55,6 +47,21 @@ type AppStoreContextValue = AppStoreState & {
 };
 
 const AppStoreContext = createContext<AppStoreContextValue | null>(null);
+const HISTORY_STORAGE_KEY = "qishui_music_history";
+const DOWNLOAD_QUEUE_STORAGE_KEY = "qishui_music_download_queue";
+
+const normalizeDownloadQueue = (downloadQueue: DownloadTask[]) =>
+  downloadQueue.map(task => {
+    if (task.status === "pending" || task.status === "downloading") {
+      return {
+        ...task,
+        status: "error" as const,
+        errorMessage: "页面刷新后下载已中断，请重新下载",
+      };
+    }
+
+    return task;
+  });
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
   // 当前播放\解析音乐
@@ -62,9 +69,18 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   // 解析中
   const [parsing, setParsing] = useState(false);
   // 历史记录
-  const [history, setHistory] = useState<MusicInfo[]>([]);
+  const [history = [], setHistory] = useLocalStorageState<MusicInfo[]>(HISTORY_STORAGE_KEY, {
+    defaultValue: [],
+  });
   // 下载队列
-  const [downloadQueue, setDownloadQueue] = useState<DownloadTask[]>([]);
+  const [downloadQueue = [], setDownloadQueue] = useLocalStorageState<DownloadTask[]>(
+    DOWNLOAD_QUEUE_STORAGE_KEY,
+    {
+      defaultValue: [],
+      serializer: value => JSON.stringify(value),
+      deserializer: value => normalizeDownloadQueue(JSON.parse(value) as DownloadTask[]),
+    }
+  );
   // 音乐播放实例
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -72,23 +88,23 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     setCurrentMusic(null);
     setHistory([]);
     setDownloadQueue([]);
-  }, []);
+  }, [setDownloadQueue, setHistory]);
 
   const addToHistory = useCallback((musicInfo: MusicInfo) => {
-    setHistory(prevHistory => [musicInfo, ...prevHistory].slice(0, 50));
-  }, []);
+    setHistory(prevHistory => [musicInfo, ...(prevHistory || [])].slice(0, 50));
+  }, [setHistory]);
 
   const addToDownloadQueue = useCallback((task: DownloadTask) => {
-    setDownloadQueue(prevQueue => [task, ...prevQueue]);
-  }, []);
+    setDownloadQueue(prevQueue => [task, ...(prevQueue || [])]);
+  }, [setDownloadQueue]);
 
   const updateDownloadTask = useCallback((taskId: string, task: Partial<DownloadTask>) => {
     setDownloadQueue(prevQueue =>
-      prevQueue.map(downloadTask =>
+      (prevQueue || []).map(downloadTask =>
         downloadTask.id === taskId ? { ...downloadTask, ...task } : downloadTask
       )
     );
-  }, []);
+  }, [setDownloadQueue]);
 
   return (
     <AppStoreContext.Provider

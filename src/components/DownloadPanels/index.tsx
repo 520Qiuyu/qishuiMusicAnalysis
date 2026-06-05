@@ -9,7 +9,7 @@ const statusText = {
 };
 
 const DownloadPanels = () => {
-  const { downloadQueue, history } = useAppStore();
+  const { downloadQueue, history, setCurrentMusic } = useAppStore();
 
   return (
     <aside className={styles['side-stack']}>
@@ -26,7 +26,7 @@ const DownloadPanels = () => {
             downloadQueue.map(task => (
               <article className={styles['task-item']} key={task.id}>
                 <div className={styles['task-main']}>
-                  <div>
+                  <div className={styles['task-name-container']}>
                     <div className={styles['task-name']}>{task.name}</div>
                     <div className={styles['task-meta']}>
                       {task.size} · {statusText[task.status]} {task.progress}%
@@ -50,28 +50,34 @@ const DownloadPanels = () => {
         </div>
       </section>
 
-      <section className={`${styles['card']} ${styles['panel']}`} aria-label="下载历史">
+      <section className={`${styles['card']} ${styles['panel']}`} aria-label="解析历史">
         <div className={styles['section-head']}>
           <div>
-            <h2 className={styles['section-title']}>下载历史</h2>
+            <h2 className={styles['section-title']}>解析历史</h2>
             <p className={styles['section-subtitle']}>最多保留最近 50 条</p>
           </div>
         </div>
         <div className={styles['history-list']}>
           {history.length > 0 ? (
             history.map((musicInfo, index) => (
-              <article className={styles['history-item']} key={`${musicInfo.title}-${musicInfo.artist}-${index}`}>
-                <div>
+              <button
+                className={styles['history-item']}
+                key={`${musicInfo.title}-${musicInfo.artist}-${index}`}
+                type="button"
+                aria-label={`设置 ${musicInfo.title || "未知歌曲"} 为当前歌曲`}
+                onClick={() => setCurrentMusic(musicInfo)}
+              >
+                <div className={styles['history-name-container']}>
                   <div className={styles['history-name']}>
                     {musicInfo.title || "未知歌曲"} - {musicInfo.artist || "未知歌手"}
                   </div>
-                  <div className={styles['history-meta']}>已保存</div>
+                  <div className={styles['history-meta']}>点击恢复为当前歌曲</div>
                 </div>
-                <i className="ri-check-line" aria-hidden="true" />
-              </article>
+                <i className="ri-arrow-right-s-line" aria-hidden="true" />
+              </button>
             ))
           ) : (
-            <div className={styles['empty-state']}>暂无下载历史</div>
+            <div className={styles['empty-state']}>暂无解析历史</div>
           )}
         </div>
       </section>

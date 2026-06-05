@@ -17,7 +17,7 @@ const AppHeader = ({ onBatchParse }: AppHeaderProps) => (
         <i className="ri-history-line" />
         历史
       </button>
-      <button
+     {/*  <button
         className={`${styles['pill-button']} ${styles['is-primary']}`}
         type="button"
         aria-label="批量解析音乐链接"
@@ -25,7 +25,7 @@ const AppHeader = ({ onBatchParse }: AppHeaderProps) => (
       >
         <i className="ri-list-check-3" />
         批量解析
-      </button>
+      </button> */}
     </div>
   </nav>
 );

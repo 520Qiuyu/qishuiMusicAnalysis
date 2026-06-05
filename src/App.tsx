@@ -10,6 +10,7 @@ import ParseSection from "./components/ParseSection";
 import styles from "./App.module.scss";
 import { parseMusicLink } from "./services/api";
 import { StoreProvider, useAppStore, type DownloadTask, type MusicInfo } from "./store";
+import { downloadBlob } from "./utils/download";
 
 const sanitizeFileName = (fileName: string) => fileName.replace(/[\\/:*?"<>|]/g, "_");
 
@@ -55,6 +56,7 @@ const AppContent = () => {
       const musicInfo = (await parseMusicLink(musicLink)) as MusicInfo;
       setCurrentMusic(musicInfo);
       console.log("musicInfo", musicInfo);
+      addToHistory(musicInfo);
       messageApi.success("解析完成，已更新音乐信息");
     } catch (error) {
       console.log("error", error);
@@ -91,21 +93,13 @@ const AppContent = () => {
 
       if (!response.body) {
         const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        const downloadLink = document.createElement("a");
-        downloadLink.href = objectUrl;
-        downloadLink.download = sanitizeFileName(task.name);
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        downloadLink.remove();
-        URL.revokeObjectURL(objectUrl);
+        downloadBlob(blob, task.name);
 
         updateDownloadTask(task.id, {
           progress: 100,
           size: formatFileSize(blob.size),
           status: "completed",
         });
-        addToHistory(currentMusic);
         messageApi.success("下载完成");
         return;
       }
@@ -138,21 +132,13 @@ const AppContent = () => {
       }
 
       const blob = new Blob(chunks, { type: "audio/mpeg" });
-      const objectUrl = URL.createObjectURL(blob);
-      const downloadLink = document.createElement("a");
-      downloadLink.href = objectUrl;
-      downloadLink.download = sanitizeFileName(task.name);
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      downloadLink.remove();
-      URL.revokeObjectURL(objectUrl);
+      downloadBlob(blob, task.name);
 
       updateDownloadTask(task.id, {
         progress: 100,
         size: formatFileSize(contentLength || blob.size),
         status: "completed",
       });
-      addToHistory(currentMusic);
       messageApi.success("下载完成");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "下载失败，请稍后重试";
