@@ -7,6 +7,7 @@ export type MusicInfo = {
   album?: string;
   cover?: string;
   url?: string;
+  format?: string;
   lrc?: string;
   lrcContent?: string;
 };

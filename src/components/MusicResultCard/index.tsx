@@ -1,22 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { useAppStore } from "../../store";
+import { useAppStore } from "@/store";
+import { downloadTextFile, getFileBlob } from "@/utils/download";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import styles from "./index.module.scss";
-import { sanitizeFileName } from "@/utils";
 
 type MusicResultCardProps = {
   onDownload: () => void;
-};
-
-const downloadTextFile = (content: string, fileName: string) => {
-  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-  const objectUrl = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = objectUrl;
-  link.download = sanitizeFileName(fileName);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(objectUrl);
 };
 
 const MusicResultCard = ({ onDownload }: MusicResultCardProps) => {
@@ -33,12 +21,7 @@ const MusicResultCard = ({ onDownload }: MusicResultCardProps) => {
     try {
       if (!currentMusic?.url) return;
       setLoading(true);
-      const res = await fetch(currentMusic.url, {
-        referrerPolicy: "no-referrer",
-        mode: "cors",
-      });
-      if (!res.ok) throw new Error("音频加载失败");
-      const blob = await res.blob();
+      const blob = await getFileBlob(currentMusic.url);
       const blobUrl = URL.createObjectURL(blob);
       audioRef.current!.src = blobUrl;
       audioRef.current!.load();
@@ -133,16 +116,16 @@ const MusicResultCard = ({ onDownload }: MusicResultCardProps) => {
     if (!currentMusic?.lrcContent) {
       return;
     }
-
-    downloadTextFile(currentMusic.lrcContent, `${currentMusic.title || "歌词"}.txt`);
+    const { title, artist } = currentMusic;
+    downloadTextFile(currentMusic.lrcContent, `${title || "歌词"} - ${artist || "未知歌手"}.txt`);
   };
 
   const handleDownloadLrcLyric = () => {
     if (!currentMusic?.lrc) {
       return;
     }
-
-    downloadTextFile(currentMusic.lrc, `${currentMusic.title || "歌词"}.lrc`);
+    const { title, artist } = currentMusic;
+    downloadTextFile(currentMusic.lrc, `${title || "歌词"} - ${artist || "未知歌手"}.lrc`);
   };
 
   useEffect(() => {
@@ -193,7 +176,7 @@ const MusicResultCard = ({ onDownload }: MusicResultCardProps) => {
         <p className={styles["song-meta"]}>
           <span>{currentMusic?.artist}</span>
           <span>{currentMusic?.album}</span>
-          <span>MP3 · 320kbps</span>
+          <span>{currentMusic?.format} · 320kbps</span>
         </p>
         <div
           className={styles["player"]}

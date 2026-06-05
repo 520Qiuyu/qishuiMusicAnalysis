@@ -5,6 +5,7 @@ export const downloadFile = async (url: string, fileName: string) => {
   a.href = url;
   a.download = sanitizeFileName(fileName);
   a.click();
+  a.remove();
 };
 
 export const getFileBlob = async (url: string) => {
@@ -31,11 +32,6 @@ export const downloadBlob = (blob: Blob, fileName: string) => {
 export const downloadTextFile = (content: string, fileName: string) => {
   const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
   const objectUrl = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = objectUrl;
-  link.download = sanitizeFileName(fileName);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  downloadFile(objectUrl, fileName);
   URL.revokeObjectURL(objectUrl);
 };

@@ -1,5 +1,5 @@
 import { ConfigProvider, message } from "antd";
-
+import styles from "./App.module.scss";
 import AppFooter from "./components/AppFooter";
 import AppHeader from "./components/AppHeader";
 import DownloadPanels from "./components/DownloadPanels";
@@ -7,12 +7,10 @@ import FeatureSection from "./components/FeatureSection";
 import HeroSection from "./components/HeroSection/index";
 import MusicResultCard from "./components/MusicResultCard";
 import ParseSection from "./components/ParseSection";
-import styles from "./App.module.scss";
 import { parseMusicLink } from "./services/api";
 import { StoreProvider, useAppStore, type DownloadTask, type MusicInfo } from "./store";
+import { getFileFormat } from "./utils";
 import { downloadBlob } from "./utils/download";
-
-const sanitizeFileName = (fileName: string) => fileName.replace(/[\\/:*?"<>|]/g, "_");
 
 const formatFileSize = (size: number) => {
   if (!Number.isFinite(size) || size <= 0) {
@@ -29,7 +27,7 @@ const createDownloadTask = (musicInfo: MusicInfo): DownloadTask => {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     musicInfo,
-    name: `${title} - ${artist}.mp3`,
+    name: `${title} - ${artist}`,
     size: "未知大小",
     progress: 0,
     status: "pending",
@@ -91,9 +89,11 @@ const AppContent = () => {
       const contentLength = Number(response.headers.get("content-length") || 0);
       updateDownloadTask(task.id, { size: formatFileSize(contentLength) });
 
+      // 如果 response.body 不存在，就不能用后面的 response.body.getReader() 去边下载边更新进度，只能退回到一次性 response.blob() 下载完整文件。
       if (!response.body) {
         const blob = await response.blob();
-        downloadBlob(blob, task.name);
+        const { ext } = await getFileFormat(blob);
+        downloadBlob(blob, `${task.name}.${ext}`);
 
         updateDownloadTask(task.id, {
           progress: 100,
@@ -131,8 +131,10 @@ const AppContent = () => {
         }
       }
 
-      const blob = new Blob(chunks, { type: "audio/mpeg" });
-      downloadBlob(blob, task.name);
+      const contentType = response.headers.get("content-type") || "audio/mpeg";
+      const blob = new Blob(chunks, { type: contentType });
+      const { ext } = await getFileFormat(blob);
+      downloadBlob(blob, `${task.name}.${ext}`);
 
       updateDownloadTask(task.id, {
         progress: 100,
