@@ -12,6 +12,28 @@ const formatPlaylistArtists = (artists?: PlaylistTrack["artists"]) => {
 };
 
 /**
+ * 判断歌曲是否只能试听。
+ *
+ * @example
+ * const isPreviewOnly = isPlaylistPreviewOnlyTrack(track);
+ */
+const isPlaylistPreviewOnlyTrack = (track: PlaylistTrack) => track.limited_free_info != null;
+
+/**
+ * 获取歌单内用于展示和试听判断的时长。
+ *
+ * @example
+ * const previewDuration = getPlaylistPreviewDuration(track, isPreviewOnly);
+ */
+const getPlaylistPreviewDuration = (track: PlaylistTrack, isPreviewOnly: boolean) => {
+  if (!isPreviewOnly) {
+    return track.duration;
+  }
+
+  return track.preview?.duration;
+};
+
+/**
  * 将歌单曲目结构转换为页面可复用的音乐信息。
  *
  * @example
@@ -21,6 +43,7 @@ const formatPlaylistMusicInfo = (track?: PlaylistTrack): PlaylistMusicInfo | nul
   if (!track) {
     return null;
   }
+  const isPreviewOnly = isPlaylistPreviewOnlyTrack(track);
 
   return {
     id: track.id,
@@ -29,7 +52,8 @@ const formatPlaylistMusicInfo = (track?: PlaylistTrack): PlaylistMusicInfo | nul
     album: track.album?.name || "未知专辑",
     cover: getQishuiImageUrl(track.album?.url_cover) || "https://via.placeholder.com/120",
     duration: track.duration,
-    previewDuration: track.preview?.duration,
+    previewDuration: getPlaylistPreviewDuration(track, isPreviewOnly),
+    isPreviewOnly,
     collectCount: track.stats?.count_collected,
     commentCount: track.stats?.count_comment,
     shareCount: track.stats?.count_shared,
@@ -51,7 +75,7 @@ export const parsePlaylistInfo = async (html: string) => {
   const scripts = doc.getElementsByTagName("script");
 
   const routerData = parseRouterData(scripts);
-  console.log('routerData',routerData)
+  console.log("routerData", routerData);
   const playlistPage = routerData?.loaderData?.playlist_page;
   if (!playlistPage?.playlistInfo) {
     throw new Error("未找到歌单信息");
@@ -68,7 +92,8 @@ export const parsePlaylistInfo = async (html: string) => {
     title: rawPlaylistInfo.title || rawPlaylistInfo.public_title || "未知歌单",
     cover: getQishuiImageUrl(rawPlaylistInfo.url_cover) || "https://via.placeholder.com/120",
     owner: rawPlaylistInfo.owner?.nickname || rawPlaylistInfo.owner?.public_name || "未知用户",
-    countTracks: rawPlaylistInfo.count_tracks || rawPlaylistInfo.resource_cnt?.track_cnt || tracks.length,
+    countTracks:
+      rawPlaylistInfo.count_tracks || rawPlaylistInfo.resource_cnt?.track_cnt || tracks.length,
     tracks,
   };
 };

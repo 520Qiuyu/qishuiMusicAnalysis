@@ -21,6 +21,7 @@ export type PlaylistTrack = {
   preview?: {
     duration?: number; // 歌曲预览时长
   };
+  limited_free_info?: Record<string, unknown> | null;
   name?: string;
   stats?: {
     count_collected?: number;
@@ -60,6 +61,7 @@ export type PlaylistMusicInfo = MusicInfo & {
   id?: string;
   duration?: number;
   previewDuration?: number;
+  isPreviewOnly?: boolean;
   collectCount?: number;
   commentCount?: number;
   shareCount?: number;

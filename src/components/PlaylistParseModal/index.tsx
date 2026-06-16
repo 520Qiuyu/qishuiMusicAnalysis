@@ -9,6 +9,7 @@ import { getFileFormat, promiseLimit } from "../../utils";
 import { downloadBlob, downloadTextFile, getFileBlob } from "../../utils/download";
 import { getQishuiMusicUrl } from "../../utils/platlist";
 import styles from "./index.module.scss";
+import { useLocalStorageState } from "ahooks";
 
 export type PlaylistParseValues = {
   playlistLink: string;
@@ -26,7 +27,7 @@ type PlaylistParseModalProps = {
 type BatchAction = "parseAll" | "downloadAll" | "downloadAllLrc" | "downloadAllTxt";
 type SongAction = "parse" | "download" | "downloadLrc" | "downloadTxt";
 
-const initValues: PlaylistParseValues = {
+const defaultValues: PlaylistParseValues = {
   playlistLink: "歌单｜我喜欢 https://qishui.douyin.com/s/iQgxdHx2/ @汽水音乐",
 };
 
@@ -51,6 +52,9 @@ const getSongActionKey = (track: PlaylistMusicInfo, index: number, action: SongA
 const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalProps>(
   ({ onParse }, ref) => {
     const [form] = Form.useForm<PlaylistParseValues>();
+    const [initValues] = useLocalStorageState<PlaylistParseValues>("playlist-parse-modal-values", {
+      defaultValue: defaultValues,
+    });
     const [parsing, setParsing] = useState(false);
     const [playlistInfo, setPlaylistInfo] = useState<PlaylistInfo | null>(null);
     const [parsedMusicInfoMap, setParsedMusicInfoMap] = useState<Record<string, MusicInfo | null>>(
@@ -218,13 +222,14 @@ const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalP
         if (!musicInfo.url) {
           throw new Error("音频地址不存在，请重新解析");
         }
-
+        debugger;
         const blob = await getFileBlob(musicInfo.url);
         const { ext } = await getFileFormat(blob);
         const title = musicInfo.title || track.title || "未知歌曲";
         const artist = musicInfo.artist || track.artist || "未知歌手";
-
-        downloadBlob(blob, `${title} - ${artist}.${ext}`);
+        const fileName = `${title} - ${artist}.${ext}`;
+        console.log("fileName", fileName);
+        downloadBlob(blob, fileName);
         setParsedMusicInfoMap(prev => ({
           ...prev,
           [getTrackKey(track, index)]: {
@@ -404,8 +409,12 @@ const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalP
                   const songCover = parsedMusicInfo?.cover || track.cover;
                   // 是否是预览歌曲
                   const isPreviewSong = Boolean(
-                    track.previewDuration && track.duration && track.previewDuration < track.duration
+                    track.isPreviewOnly &&
+                    track.previewDuration &&
+                    track.duration &&
+                    track.previewDuration < track.duration
                   );
+                  const displayDuration = isPreviewSong ? track.previewDuration : track.duration;
 
                   return (
                     <article
@@ -447,7 +456,7 @@ const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalP
                           )}
                         </div>
                         <p className={styles["song-meta"]}>
-                          {songArtist} · {songAlbum} · {formatDuration(track.previewDuration)}
+                          {songArtist} · {songAlbum} · {formatDuration(displayDuration)}
                         </p>
                         {isSongParsed && (
                           <div className={styles["song-data-row"]}>

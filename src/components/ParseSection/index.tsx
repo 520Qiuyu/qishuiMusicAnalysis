@@ -1,18 +1,22 @@
 import { Button, Form, Input } from "antd";
 
 import styles from "./index.module.scss";
+import { useLocalStorageState } from "ahooks";
 
 type ParseSectionProps = {
-  onParse: (values: typeof initValues) => Promise<void>;
+  onParse: (values: typeof defaultValues) => Promise<void>;
   loading?: boolean;
 };
 
-const initValues = {
+const defaultValues = {
   musicLink: "《一点》@汽水音乐 https://qishui.douyin.com/s/ia4MqU3p/",
 };
 
 const ParseSection = ({ loading = false, onParse }: ParseSectionProps) => {
-  const [form] = Form.useForm<typeof initValues>();
+  const [form] = Form.useForm<typeof defaultValues>();
+  const [initValues] = useLocalStorageState("parse-section-values", {
+    defaultValue: defaultValues,
+  });
 
   const handleFinish = async () => {
     const values = await form.validateFields();
