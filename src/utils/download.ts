@@ -26,12 +26,16 @@ export const downloadBlob = (blob: Blob, fileName: string) => {
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(objectUrl);
+  window.setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+  }, 1000);
 };
 
 export const downloadTextFile = (content: string, fileName: string) => {
   const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
   const objectUrl = URL.createObjectURL(blob);
   downloadFile(objectUrl, fileName);
-  URL.revokeObjectURL(objectUrl);
+  window.setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+  }, 1000);
 };

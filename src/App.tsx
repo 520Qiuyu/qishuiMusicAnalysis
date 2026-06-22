@@ -1,4 +1,5 @@
 import { ConfigProvider, message } from "antd";
+import { useRef } from "react";
 import styles from "./App.module.scss";
 import AppFooter from "./components/AppFooter";
 import AppHeader from "./components/AppHeader";
@@ -7,7 +8,11 @@ import FeatureSection from "./components/FeatureSection";
 import HeroSection from "./components/HeroSection/index";
 import MusicResultCard from "./components/MusicResultCard";
 import ParseSection from "./components/ParseSection";
-import { parseMusicLink } from "./services/api";
+import PlaylistParseModal, {
+  type PlaylistParseModalRef,
+  type PlaylistParseValues,
+} from "./components/PlaylistParseModal";
+import { parseMusicLink, parsePlaylistLink } from "./services/api";
 import { StoreProvider, useAppStore, type DownloadTask, type MusicInfo } from "./store";
 import { getFileFormat } from "./utils";
 import { downloadBlob } from "./utils/download";
@@ -37,6 +42,7 @@ const createDownloadTask = (musicInfo: MusicInfo): DownloadTask => {
 
 const AppContent = () => {
   const [messageApi, contextHolder] = message.useMessage();
+  const playlistParseModalRef = useRef<PlaylistParseModalRef>(null);
   const {
     currentMusic,
     parsing,
@@ -152,8 +158,20 @@ const AppContent = () => {
     }
   };
 
-  const handleBatchParse = () => {
-    messageApi.info("批量解析功能将在后续接入");
+  const handleOpenPlaylistModal = () => {
+    playlistParseModalRef.current?.open();
+  };
+
+  const handleParsePlaylist = async ({ playlistLink }: PlaylistParseValues) => {
+    try {
+      const playlistInfo = await parsePlaylistLink(playlistLink);
+      console.log("playlistInfo", playlistInfo);
+      messageApi.success(`歌单解析完成：${playlistInfo.title}，共 ${playlistInfo.countTracks} 首`);
+      return playlistInfo;
+    } catch (error) {
+      messageApi.error(error instanceof Error ? error.message : "歌单解析失败，请稍后重试");
+      throw error;
+    }
   };
 
   return (
@@ -168,7 +186,8 @@ const AppContent = () => {
       }}>
       {contextHolder}
       <div className={styles["page-shell"]}>
-        <AppHeader onBatchParse={handleBatchParse} />
+        <AppHeader onBatchParse={handleOpenPlaylistModal} />
+
         <HeroSection />
 
         <main className={styles["app-grid"]}>
@@ -187,6 +206,12 @@ const AppContent = () => {
 
         <AppFooter />
       </div>
+
+      {/* 歌单解析弹窗 */}
+      <PlaylistParseModal
+        ref={playlistParseModalRef}
+        onParse={handleParsePlaylist}
+      />
     </ConfigProvider>
   );
 };

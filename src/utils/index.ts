@@ -1,38 +1,8 @@
 import { parseBlob } from "music-metadata";
 
-import type { MusicInfo } from "../store";
-
-export type KrcLyricWord = {
-  text: string;
-  startMs: number;
-  endMs: number;
-};
-
-export type KrcLyricSentence = {
-  text: string;
-  startMs: number;
-  endMs: number;
-  words: KrcLyricWord[];
-  type?: string;
-};
-
-export type KrcLyrics = {
-  lyricType: "krc";
-  sentences: KrcLyricSentence[];
-};
-
-type AudioWithLyricsOption = {
-  trackName?: string;
-  artistName?: string;
-  trackInfo?: {
-    album?: {
-      name?: string;
-    };
-  };
-  coverURL?: string;
-  url?: string;
-  lyrics?: KrcLyrics;
-};
+import type { RouterData } from "../types";
+import type { QishuiImage } from "../types/platlist";
+import type { AudioFileFormat } from "../types/song";
 
 /** 解析链接 */
 export const parseLink = (link: string) => {
@@ -43,116 +13,132 @@ export const parseLink = (link: string) => {
   return url[0];
 };
 
-const formatLrcTime = (timeMs: number) => {
-  const normalizedTimeMs = Number.isFinite(timeMs) ? Math.max(timeMs, 0) : 0;
-  const minutes = Math.floor(normalizedTimeMs / 60000);
-  const seconds = Math.floor((normalizedTimeMs % 60000) / 1000);
-  const centiseconds = Math.floor((normalizedTimeMs % 1000) / 10);
+/**
+ * 从页面脚本中提取汽水音乐注入的路由数据。
+ *
+ * @example
+ * const routerData = parseRouterData(doc.getElementsByTagName("script"));
+ */
+export const parseRouterData = (scripts: HTMLCollectionOf<HTMLScriptElement>) => {
+  for (const script of scripts) {
+    const content = script.textContent || script.innerText;
+    if (!content.includes("_ROUTER_DATA")) {
+      continue;
+    }
 
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(
-    centiseconds
-  ).padStart(2, "0")}`;
+    try {
+      const match = content.match(/_ROUTER_DATA\s*=\s*({[\s\S]*?});/);
+      if (!match?.[1]) {
+        continue;
+      }
+
+      return JSON.parse(match[1]) as RouterData;
+    } catch (error) {
+      console.error("解析script内容失败:", error);
+    }
+  }
+
+  return null;
 };
 
 /**
- * 将汽水音乐返回的 krc 歌词结构转换为标准 lrc 文本。
+ * 拼接汽水音乐图片资源地址。
  *
  * @example
- * const lrc = parseLrc({
- *   lyricType: "krc",
- *   sentences: [{ text: "一点", startMs: 1200, endMs: 2500, words: [] }],
- * });
+ * const cover = getQishuiImageUrl(track.album?.url_cover);
  */
-export const parseLrc = (lyrics?: KrcLyrics | null) => {
-  if (!lyrics?.sentences?.length) {
+export const getQishuiImageUrl = (image?: QishuiImage | null) => {
+  const imageBaseUrl = image?.urls?.find(Boolean) || "";
+  if (!imageBaseUrl) {
     return "";
   }
 
-  return lyrics.sentences
-    .filter(sentence => sentence.text)
-    .map(sentence => `[${formatLrcTime(sentence.startMs)}]${sentence.text}`)
-    .join("\n");
-};
-
-/** 解析音乐信息 */
-export const parseMusicInfo = async (html: string) => {
-  if (!html) {
-    throw new Error("请传入页面 HTML 内容");
-  }
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-  const scripts = doc.getElementsByTagName("script");
-  const lrcs = doc.querySelectorAll(".ssr-lyric");
-  console.log("lrcs", lrcs);
-
-  let musicInfo: MusicInfo | null = {
-    lrcContent: [...lrcs].map(lrc => lrc.textContent || "").join("\n"),
-  };
-
-  for (const script of scripts) {
-    const content = script.textContent || script.innerText;
-    if (content.includes("_ROUTER_DATA")) {
-      try {
-        const match = content.match(/_ROUTER_DATA\s*=\s*({[\s\S]*?});/);
-        if (match && match[1]) {
-          const jsonData = JSON.parse(match[1]);
-          const infoData = jsonData?.loaderData?.track_page || {};
-          const { audioWithLyricsOption } = infoData as {
-            audioWithLyricsOption?: AudioWithLyricsOption;
-          };
-          if (audioWithLyricsOption) {
-            const title = audioWithLyricsOption.trackName || "未知歌曲";
-            const artist = audioWithLyricsOption.artistName || "未知歌手";
-            const album = audioWithLyricsOption.trackInfo?.album?.name || "未知专辑";
-            const cover = audioWithLyricsOption.coverURL || "https://via.placeholder.com/120";
-            const url = audioWithLyricsOption.url
-              ? encodeURI(decodeURI(audioWithLyricsOption.url))
-              : "";
-            const lrc = `[ti:${title}]\n[ar:${artist}]\n${parseLrc(audioWithLyricsOption.lyrics)}`;
-            let format = "mp3";
-            try {
-              const { ext } = await getAudioFormatFromNetwork(url);
-              format = ext;
-            } catch (error) {
-              console.error("获取音频格式失败:", error);
-            }
-            musicInfo = {
-              ...musicInfo,
-              title,
-              artist,
-              album,
-              cover,
-              url,
-              lrc,
-              format,
-            };
-            return musicInfo;
-          }
-        }
-      } catch (error) {
-        console.error("解析script内容失败:", error);
-      }
-    }
-  }
-  if (!musicInfo) {
-    throw new Error("未找到音乐信息");
+  if (!image?.uri) {
+    return imageBaseUrl;
   }
 
-  return musicInfo;
+  return `${imageBaseUrl}${imageBaseUrl.endsWith("/") ? "" : "/"}${image.uri}~${image.template_prefix}-crop-center:720:720.jpg`;
 };
 
 /** 清理文件名 */
 export const sanitizeFileName = (fileName: string) => fileName.replace(/[\\/:*?"<>|]/g, "_");
 
-export type AudioFileFormat = {
-  /** 文件扩展名，不包含点，例如 mp3、m4a */
-  ext: string;
-  /** Blob 或解析结果中的 MIME 类型 */
-  mimeType: string;
-  /** music-metadata 识别出的容器类型 */
-  container?: string;
-  /** music-metadata 识别出的编码类型 */
-  codec?: string;
+export type PromiseLimitTask<T> = () => Promise<T> | T;
+
+export type PromiseLimitOptions = {
+  /** 每个任务完成后等待的毫秒数 */
+  wait?: number;
+};
+
+/**
+ * 等待指定毫秒数。
+ *
+ * @example
+ * await sleep(300);
+ */
+export const sleep = (time: number) =>
+  new Promise<void>(resolve => {
+    window.setTimeout(resolve, Math.max(0, time));
+  });
+
+/**
+ * 并发执行任务数组，并限制同一时间运行的最大数量。
+ *
+ * @example
+ * const results = await promiseLimit([
+ *   () => fetch("/api/1"),
+ *   () => fetch("/api/2"),
+ *   () => fetch("/api/3"),
+ * ], 2, { wait: 300 });
+ */
+export const promiseLimit = async <T>(
+  promiseArray: PromiseLimitTask<T>[],
+  limit = 6,
+  options: PromiseLimitOptions = {}
+) => {
+  const { wait = 0 } = options;
+
+  if (!Array.isArray(promiseArray)) {
+    throw new Error("第一个参数必须是数组");
+  }
+
+  if (!Number.isInteger(limit) || limit < 1) {
+    throw new Error("并发限制必须是正整数");
+  }
+
+  if (promiseArray.length === 0) {
+    return [];
+  }
+
+  const results: unknown[] = new Array(promiseArray.length);
+  let currentIndex = 0;
+
+  const runTask = async () => {
+    while (currentIndex < promiseArray.length) {
+      const taskIndex = currentIndex;
+      currentIndex += 1;
+
+      try {
+        const task = promiseArray[taskIndex];
+        if (typeof task !== "function") {
+          throw new Error(`数组中索引为 ${taskIndex} 的元素不是函数`);
+        }
+
+        results[taskIndex] = await task();
+      } catch (error) {
+        results[taskIndex] = error;
+      }
+
+      if (wait > 0 && currentIndex < promiseArray.length) {
+        await sleep(wait);
+      }
+    }
+  };
+
+  const tasksToStart = Math.min(limit, promiseArray.length);
+  await Promise.all(Array.from({ length: tasksToStart }, () => runTask()));
+
+  return results as Array<T | unknown>;
 };
 
 const getExtensionByMimeType = (mimeType?: string) => {
