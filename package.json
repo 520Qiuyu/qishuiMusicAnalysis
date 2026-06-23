@@ -8,12 +8,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@noble/ciphers": "^2.2.0",
     "ahooks": "^3.9.7",
     "antd": "^6.4.3",
     "axios": "^1.17.0",
     "music-metadata": "^11.12.3",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "tsx": "^4.22.4"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",

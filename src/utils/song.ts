@@ -1,6 +1,7 @@
+import { getAudioFormatFromNetwork, parseRouterData } from ".";
+import { fetchTrackV2 } from "@/services/server";
 import type { MusicInfo } from "../store";
 import type { KrcLyrics } from "../types/song";
-import { getAudioFormatFromNetwork, parseRouterData } from ".";
 
 const formatLrcTime = (timeMs: number) => {
   const normalizedTimeMs = Number.isFinite(timeMs) ? Math.max(timeMs, 0) : 0;
@@ -54,7 +55,8 @@ export const parseMusicInfo = async (html: string) => {
   };
 
   const routerData = parseRouterData(scripts);
-  console.log('routerData',routerData)
+  console.log("routerData", routerData);
+
   const audioWithLyricsOption = routerData?.loaderData?.track_page?.audioWithLyricsOption;
   if (audioWithLyricsOption) {
     const title = audioWithLyricsOption.trackName || "未知歌曲";
@@ -80,6 +82,24 @@ export const parseMusicInfo = async (html: string) => {
       lrc,
       format,
     };
+
+    // 尝试获取完整版链接
+    try {
+      const trackId = routerData?.loaderData?.track_page?.track_id;
+      if (trackId) {
+        const fullInfo = await fetchTrackV2({ track_id: trackId });
+        console.log("fullInfo", fullInfo);
+        if (fullInfo.url) {
+          musicInfo = {
+            ...musicInfo,
+            ...fullInfo,
+          };
+        }
+      }
+    } catch (error) {
+      console.error("获取完整版链接失败:", error);
+    }
+
     return musicInfo;
   }
 

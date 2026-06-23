@@ -1,5 +1,12 @@
 import { useLocalStorageState } from "ahooks";
-import { createContext, useCallback, useContext, useRef, useState, type PropsWithChildren } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+  type PropsWithChildren,
+} from "react";
 
 export type MusicInfo = {
   title?: string;
@@ -10,6 +17,8 @@ export type MusicInfo = {
   format?: string;
   lrc?: string;
   lrcContent?: string;
+  playAuth?: string;
+  playAuthID?: string;
 };
 
 export type DownloadTaskStatus = "pending" | "downloading" | "completed" | "error";
@@ -91,21 +100,30 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     setDownloadQueue([]);
   }, [setDownloadQueue, setHistory]);
 
-  const addToHistory = useCallback((musicInfo: MusicInfo) => {
-    setHistory(prevHistory => [musicInfo, ...(prevHistory || [])].slice(0, 50));
-  }, [setHistory]);
+  const addToHistory = useCallback(
+    (musicInfo: MusicInfo) => {
+      setHistory(prevHistory => [musicInfo, ...(prevHistory || [])].slice(0, 50));
+    },
+    [setHistory]
+  );
 
-  const addToDownloadQueue = useCallback((task: DownloadTask) => {
-    setDownloadQueue(prevQueue => [task, ...(prevQueue || [])]);
-  }, [setDownloadQueue]);
+  const addToDownloadQueue = useCallback(
+    (task: DownloadTask) => {
+      setDownloadQueue(prevQueue => [task, ...(prevQueue || [])]);
+    },
+    [setDownloadQueue]
+  );
 
-  const updateDownloadTask = useCallback((taskId: string, task: Partial<DownloadTask>) => {
-    setDownloadQueue(prevQueue =>
-      (prevQueue || []).map(downloadTask =>
-        downloadTask.id === taskId ? { ...downloadTask, ...task } : downloadTask
-      )
-    );
-  }, [setDownloadQueue]);
+  const updateDownloadTask = useCallback(
+    (taskId: string, task: Partial<DownloadTask>) => {
+      setDownloadQueue(prevQueue =>
+        (prevQueue || []).map(downloadTask =>
+          downloadTask.id === taskId ? { ...downloadTask, ...task } : downloadTask
+        )
+      );
+    },
+    [setDownloadQueue]
+  );
 
   return (
     <AppStoreContext.Provider

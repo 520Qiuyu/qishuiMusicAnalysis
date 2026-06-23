@@ -2,6 +2,7 @@ import { useAppStore } from "@/store";
 import { downloadTextFile, getFileBlob } from "@/utils/download";
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import styles from "./index.module.scss";
+import { SodaAudioDecryptor } from "@/utils/sodaDecryptor";
 
 type MusicResultCardProps = {
   onDownload: () => void;
@@ -21,7 +22,14 @@ const MusicResultCard = ({ onDownload }: MusicResultCardProps) => {
     try {
       if (!currentMusic?.url) return;
       setLoading(true);
-      const blob = await getFileBlob(currentMusic.url);
+      let blob = await getFileBlob(currentMusic.url);
+      if (currentMusic.playAuth) {
+        const { blob: decryptedBlob } = await SodaAudioDecryptor.decryptBlob(
+          blob,
+          currentMusic.playAuth
+        );
+        blob = decryptedBlob;
+      }
       const blobUrl = URL.createObjectURL(blob);
       audioRef.current!.src = blobUrl;
       audioRef.current!.load();

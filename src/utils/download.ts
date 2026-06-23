@@ -1,4 +1,5 @@
 import { sanitizeFileName } from "./index";
+import { SodaAudioDecryptor } from "./sodaDecryptor";
 
 export const downloadFile = async (url: string, fileName: string) => {
   const a = document.createElement("a");
@@ -38,4 +39,9 @@ export const downloadTextFile = (content: string, fileName: string) => {
   window.setTimeout(() => {
     URL.revokeObjectURL(objectUrl);
   }, 1000);
+};
+
+export const downloadEncryptedAudio = async (blob: Blob, playAuth: string, fileName: string) => {
+  const { blob: decryptedBlob } = await SodaAudioDecryptor.decryptBlob(blob, playAuth);
+  downloadBlob(decryptedBlob, fileName);
 };

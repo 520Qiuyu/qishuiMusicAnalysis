@@ -6,7 +6,12 @@ import { get } from "../../services/request";
 import type { MusicInfo } from "../../store";
 import type { PlaylistInfo, PlaylistMusicInfo } from "../../types/platlist";
 import { getFileFormat, promiseLimit } from "../../utils";
-import { downloadBlob, downloadTextFile, getFileBlob } from "../../utils/download";
+import {
+  downloadBlob,
+  downloadEncryptedAudio,
+  downloadTextFile,
+  getFileBlob,
+} from "../../utils/download";
 import { getQishuiMusicUrl } from "../../utils/platlist";
 import styles from "./index.module.scss";
 import { useLocalStorageState } from "ahooks";
@@ -26,6 +31,8 @@ type PlaylistParseModalProps = {
 
 type BatchAction = "parseAll" | "downloadAll" | "downloadAllLrc" | "downloadAllTxt";
 type SongAction = "parse" | "download" | "downloadLrc" | "downloadTxt";
+
+const LIMIT_COUNT = 1;
 
 const defaultValues: PlaylistParseValues = {
   playlistLink: "歌单｜我喜欢 https://qishui.douyin.com/s/iQgxdHx2/ @汽水音乐",
@@ -52,7 +59,7 @@ const getSongActionKey = (track: PlaylistMusicInfo, index: number, action: SongA
 const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalProps>(
   ({ onParse }, ref) => {
     const [form] = Form.useForm<PlaylistParseValues>();
-    const [initValues] = useLocalStorageState<PlaylistParseValues>("playlist-parse-modal-values", {
+    const [initValues, setInitValues] = useLocalStorageState<PlaylistParseValues>("playlist-parse-modal-values", {
       defaultValue: defaultValues,
     });
     const [parsing, setParsing] = useState(false);
@@ -81,6 +88,7 @@ const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalP
     const handleParsePlaylist = async () => {
       try {
         const values = await form.validateFields();
+        setInitValues(values);
         setParsing(true);
         const nextPlaylistInfo = await onParse(values);
         setPlaylistInfo(nextPlaylistInfo);
@@ -117,7 +125,7 @@ const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalP
 
     const handleParseAll = async () => {
       await handleBatchAction("parseAll", async () => {
-        const results = await promiseLimit(getPlaylistTasks(handleParseSong), 4, { wait: 200 });
+        const results = await promiseLimit(getPlaylistTasks(handleParseSong), LIMIT_COUNT, { wait: 200 });
         const failedCount = getFailedTaskCount(results);
         if (failedCount > 0) {
           message.warning(`解析完成，${failedCount} 首失败`);
@@ -129,7 +137,7 @@ const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalP
 
     const handleDownloadAll = async () => {
       await handleBatchAction("downloadAll", async () => {
-        const results = await promiseLimit(getPlaylistTasks(handleDownloadSong), 4, { wait: 200 });
+        const results = await promiseLimit(getPlaylistTasks(handleDownloadSong), LIMIT_COUNT, { wait: 200 });
         const failedCount = getFailedTaskCount(results);
         if (failedCount > 0) {
           message.warning(`下载完成，${failedCount} 首失败`);
@@ -141,7 +149,7 @@ const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalP
 
     const handleDownloadAllLrc = async () => {
       await handleBatchAction("downloadAllLrc", async () => {
-        const results = await promiseLimit(getPlaylistTasks(handleDownloadSongLrc), 4, {
+        const results = await promiseLimit(getPlaylistTasks(handleDownloadSongLrc), LIMIT_COUNT, {
           wait: 200,
         });
         const failedCount = getFailedTaskCount(results);
@@ -155,7 +163,7 @@ const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalP
 
     const handleDownloadAllTxt = async () => {
       await handleBatchAction("downloadAllTxt", async () => {
-        const results = await promiseLimit(getPlaylistTasks(handleDownloadSongTxt), 4, {
+        const results = await promiseLimit(getPlaylistTasks(handleDownloadSongTxt), LIMIT_COUNT, {
           wait: 200,
         });
         const failedCount = getFailedTaskCount(results);
@@ -229,7 +237,11 @@ const PlaylistParseModal = forwardRef<PlaylistParseModalRef, PlaylistParseModalP
         const artist = musicInfo.artist || track.artist || "未知歌手";
         const fileName = `${title} - ${artist}.${ext}`;
         console.log("fileName", fileName);
-        downloadBlob(blob, fileName);
+        if (musicInfo.playAuth) {
+          downloadEncryptedAudio(blob, musicInfo.playAuth, fileName);
+        } else {
+          downloadBlob(blob, fileName);
+        }
         setParsedMusicInfoMap(prev => ({
           ...prev,
           [getTrackKey(track, index)]: {
