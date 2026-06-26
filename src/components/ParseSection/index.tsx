@@ -14,12 +14,13 @@ const defaultValues = {
 
 const ParseSection = ({ loading = false, onParse }: ParseSectionProps) => {
   const [form] = Form.useForm<typeof defaultValues>();
-  const [initValues] = useLocalStorageState("parse-section-values", {
+  const [initValues, setInitValues] = useLocalStorageState("parse-section-values", {
     defaultValue: defaultValues,
   });
 
   const handleFinish = async () => {
     const values = await form.validateFields();
+    setInitValues(values);
     await onParse(values);
   };
 

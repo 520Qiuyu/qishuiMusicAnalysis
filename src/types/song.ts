@@ -31,6 +31,7 @@ export type AudioWithLyricsOption = {
 };
 
 export type TrackPageData = {
+  track_id?: string;
   audioWithLyricsOption?: AudioWithLyricsOption;
 };
 

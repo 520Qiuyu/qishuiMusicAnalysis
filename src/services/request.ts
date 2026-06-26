@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 
 const CORS_PROXY = "http://qiuyu520.fun/cors/?url=";
 
@@ -23,9 +23,13 @@ export const get = <R = any, P = Record<string, any>>(url: string, params?: P): 
   return request.get<P, R>(proxyUrl, { params });
 };
 
-export const post = <R = any, D = Record<string, any>>(url: string, data?: D): Promise<R> => {
+export const post = <R = any, D = Record<string, any>>(
+  url: string,
+  data?: D,
+  config?: AxiosRequestConfig
+): Promise<R> => {
   const proxyUrl = CORS_PROXY + encodeURIComponent(url);
-  return request.post<D, R>(proxyUrl, data);
+  return request.post<D, R>(proxyUrl, data, config);
 };
 
 export default request;

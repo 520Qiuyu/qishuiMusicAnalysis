@@ -1,0 +1,6 @@
+services:
+  qishui-server:
+    image: qiuyu6543/qishui-music-analysis-server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile

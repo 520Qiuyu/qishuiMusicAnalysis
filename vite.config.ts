@@ -7,6 +7,12 @@ export default defineConfig({
   plugins: [react(), viteSingleFile()],
   server: {
     host: true,
+    proxy: {
+      "/api": {
+        target: "http://localhost:6623",
+        changeOrigin: true,
+      },
+    },
   },
   // 路径解析配置
   resolve: {

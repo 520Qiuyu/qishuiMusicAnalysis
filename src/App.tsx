@@ -15,7 +15,7 @@ import PlaylistParseModal, {
 import { parseMusicLink, parsePlaylistLink } from "./services/api";
 import { StoreProvider, useAppStore, type DownloadTask, type MusicInfo } from "./store";
 import { getFileFormat } from "./utils";
-import { downloadBlob } from "./utils/download";
+import { downloadBlob, downloadEncryptedAudio } from "./utils/download";
 
 const formatFileSize = (size: number) => {
   if (!Number.isFinite(size) || size <= 0) {
@@ -99,7 +99,12 @@ const AppContent = () => {
       if (!response.body) {
         const blob = await response.blob();
         const { ext } = await getFileFormat(blob);
-        downloadBlob(blob, `${task.name}.${ext}`);
+        debugger;
+        if (currentMusic.playAuth) {
+          downloadEncryptedAudio(blob, currentMusic.playAuth, `${task.name}.${ext}`);
+        } else {
+          downloadBlob(blob, `${task.name}.${ext}`);
+        }
 
         updateDownloadTask(task.id, {
           progress: 100,
@@ -140,7 +145,12 @@ const AppContent = () => {
       const contentType = response.headers.get("content-type") || "audio/mpeg";
       const blob = new Blob(chunks, { type: contentType });
       const { ext } = await getFileFormat(blob);
-      downloadBlob(blob, `${task.name}.${ext}`);
+      debugger;
+      if (currentMusic.playAuth) {
+        downloadEncryptedAudio(blob, currentMusic.playAuth, `${task.name}.${ext}`);
+      } else {
+        downloadBlob(blob, `${task.name}.${ext}`);
+      }
 
       updateDownloadTask(task.id, {
         progress: 100,
