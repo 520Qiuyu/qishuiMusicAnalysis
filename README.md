@@ -284,12 +284,12 @@ docker compose logs
 <table>
   <tr>
     <td align="center">
-      <img src="../assets/微信收款码.jpg" alt="微信收款码" width="240" />
+      <img src="./assets/微信收款码.jpg" alt="微信收款码" width="240" />
       <br />
       <b>微信支付</b>
     </td>
     <td align="center">
-      <img src="../assets/支付宝收款码.jpg" alt="支付宝收款码" width="240" />
+      <img src="./assets/支付宝收款码.jpg" alt="支付宝收款码" width="240" />
       <br />
       <b>支付宝</b>
     </td>
