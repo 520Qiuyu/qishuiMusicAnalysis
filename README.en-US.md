@@ -1,5 +1,7 @@
 # Qishui Music Analysis Server
 
+[中文](./README.md) | **English**
+
 A Koa-based API service used to proxy the Qishui Music `track/v2` interface, allowing the frontend to retrieve full-version audio information. This project is intended to be used in conjunction with the frontend (Vite + React + Ant Design) located in the repository root to implement the complete flow of "Paste share link → Parse song → Preview / Download".
 
 ## Project Introduction
