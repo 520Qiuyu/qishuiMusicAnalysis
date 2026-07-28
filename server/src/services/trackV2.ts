@@ -107,7 +107,6 @@ export const fetchTrackV2 = async (
   }
 
   const trackData = await trackResponse.json();
-  console.log("trackData", trackData);
   const musicInfo: TrackV2Result = {
     title: trackData?.track?.name,
     artist: trackData?.track?.artists[0]?.name,
