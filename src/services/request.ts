@@ -1,6 +1,7 @@
 import axios, { type AxiosRequestConfig } from "axios";
 
-const CORS_PROXY = "http://qiuyu520.fun/cors/?url=";
+// const CORS_PROXY = "http://qiuyu520.fun/cors/?url=";
+const CORS_PROXY = "https://qiuyu520.fun/cors/?url=";
 
 const request = axios.create({
   timeout: 10000,
