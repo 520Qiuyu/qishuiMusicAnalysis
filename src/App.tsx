@@ -169,11 +169,14 @@ const AppContent = () => {
   };
 
   const handleOpenPlaylistModal = () => {
-    playlistParseModalRef.current?.open();
+    return messageApi.warning(
+      "公益网站，为防止滥用，歌单解析功能已下线，如需使用，请自行部署或者付费获取，感谢支持！"
+    );
+    /* playlistParseModalRef.current?.open(); */
   };
 
   const handleParsePlaylist = async ({ playlistLink }: PlaylistParseValues) => {
-    try {
+    /*  try {
       const playlistInfo = await parsePlaylistLink(playlistLink);
       console.log("playlistInfo", playlistInfo);
       messageApi.success(`歌单解析完成：${playlistInfo.title}，共 ${playlistInfo.countTracks} 首`);
@@ -181,7 +184,7 @@ const AppContent = () => {
     } catch (error) {
       messageApi.error(error instanceof Error ? error.message : "歌单解析失败，请稍后重试");
       throw error;
-    }
+    } */
   };
 
   return (
@@ -218,10 +221,10 @@ const AppContent = () => {
       </div>
 
       {/* 歌单解析弹窗 */}
-      <PlaylistParseModal
+      {/*       <PlaylistParseModal
         ref={playlistParseModalRef}
         onParse={handleParsePlaylist}
-      />
+      /> */}
     </ConfigProvider>
   );
 };

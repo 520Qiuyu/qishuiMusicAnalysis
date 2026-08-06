@@ -3,7 +3,7 @@ import axios from "axios";
 const isProduction = import.meta.env.PROD;
 console.log("isProduction", isProduction);
 
-const API_BASE_URL = isProduction ? "http://qiuyu520.fun/qishuiParse/api" : "/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 const serverRequest = axios.create({
   baseURL: API_BASE_URL,
