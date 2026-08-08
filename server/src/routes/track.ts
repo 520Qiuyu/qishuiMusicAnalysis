@@ -3,6 +3,14 @@ import { fetchTrackV2 } from "../services/trackV2";
 
 const router = new Router({ prefix: "/api/track" });
 
+/** 同一 IP / trackId 最小请求间隔（毫秒） */
+const RATE_LIMIT_INTERVAL_MS = 1000;
+
+/** 按 IP 记录上次请求时间 */
+const ipLastRequestAt = new Map<string, number>();
+/** 按 trackId 记录上次请求时间 */
+const trackIdLastRequestAt = new Map<string, number>();
+
 /**
  * 获取客户端真实 IP（兼容代理场景）。
  *
@@ -18,6 +26,39 @@ const getClientIp = (ctx: { ip: string; headers: Record<string, string | string[
     return forwarded[0].split(",")[0].trim();
   }
   return ctx.ip || "unknown";
+};
+
+/**
+ * 判断指定 key 是否仍在限流窗口内（不写入时间戳）。
+ *
+ * @example
+ * if (isWithinRateLimit(ipLastRequestAt, clientIp)) return;
+ */
+const isWithinRateLimit = (store: Map<string, number>, key: string) => {
+  const lastAt = store.get(key) ?? 0;
+  return Date.now() - lastAt < RATE_LIMIT_INTERVAL_MS;
+};
+
+/**
+ * 记录指定 key 的本次请求时间。
+ *
+ * @example
+ * markRateLimit(ipLastRequestAt, clientIp);
+ */
+const markRateLimit = (store: Map<string, number>, key: string) => {
+  store.set(key, Date.now());
+};
+
+/**
+ * 清理过期的限流记录，避免 Map 无限增长。
+ */
+const cleanupRateLimitStore = (store: Map<string, number>) => {
+  const now = Date.now();
+  for (const [key, lastAt] of store) {
+    if (now - lastAt >= RATE_LIMIT_INTERVAL_MS * 10) {
+      store.delete(key);
+    }
+  }
 };
 
 router.post("/v2", async ctx => {
@@ -44,6 +85,35 @@ router.post("/v2", async ctx => {
     });
     return;
   }
+
+  const trackIdKey = String(trackId);
+  cleanupRateLimitStore(ipLastRequestAt);
+  cleanupRateLimitStore(trackIdLastRequestAt);
+
+  // 同一 IP 或同一 trackId 每秒仅允许一次，超出返回空数据
+  if (
+    isWithinRateLimit(ipLastRequestAt, clientIp) ||
+    isWithinRateLimit(trackIdLastRequestAt, trackIdKey)
+  ) {
+    const response = {
+      ok: true,
+      data: null,
+    };
+    ctx.body = response;
+    console.log("[track/v2]", {
+      time: requestTime,
+      ip: clientIp,
+      durationMs: Date.now() - startedAt,
+      status: 200,
+      rateLimited: true,
+      params: body,
+      response,
+    });
+    return;
+  }
+
+  markRateLimit(ipLastRequestAt, clientIp);
+  markRateLimit(trackIdLastRequestAt, trackIdKey);
 
   try {
     const data = await fetchTrackV2({}, { track_id: trackId, ...rest });
