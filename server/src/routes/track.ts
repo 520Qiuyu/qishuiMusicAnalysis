@@ -4,7 +4,7 @@ import { fetchTrackV2 } from "../services/trackV2";
 const router = new Router({ prefix: "/api/track" });
 
 /** 同一 IP / trackId 最小请求间隔（毫秒） */
-const RATE_LIMIT_INTERVAL_MS = 1000;
+const RATE_LIMIT_INTERVAL_MS = 3000;
 
 /** 按 IP 记录上次请求时间 */
 const ipLastRequestAt = new Map<string, number>();
