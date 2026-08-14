@@ -19,4 +19,6 @@ export const env = {
   cookie: process.env.COOKIE || "",
   xHelios: process.env.X_HELIOS || "",
   xMedusa: process.env.X_MEDUSA || "",
+  /** 同一 IP / trackId 最小请求间隔（毫秒），默认 1000 */
+  rateLimitIntervalMs: Number(process.env.RATE_LIMIT_INTERVAL_MS) || 1000,
 };
