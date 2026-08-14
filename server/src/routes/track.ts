@@ -1,5 +1,11 @@
 import Router from "@koa/router";
-import { getRandomImage, getRandomSong } from "../constants";
+import {
+  getRandomImage,
+  getRandomPlayAuth,
+  getRandomPlayAuthID,
+  getRandomSong,
+  getRandomTrackMeta,
+} from "../constants";
 import { fetchTrackV2 } from "../services/trackV2";
 import {
   cleanupRateLimitStore,
@@ -55,16 +61,17 @@ router.post("/v2", async ctx => {
     isWithinRateLimit(ipLastRequestAt, clientIp) ||
     isWithinRateLimit(trackIdLastRequestAt, trackIdKey)
   ) {
+    const { title, artist, album } = getRandomTrackMeta();
     const response = {
       ok: true,
       data: {
-        title: "等你下雨",
-        artist: "周杰伦",
-        album: "等你下课",
+        title,
+        artist,
+        album,
         cover: getRandomImage(),
         url: getRandomSong(),
-        playAuth: "91pronhub.com",
-        playAuthID: "mantou123",
+        playAuth: getRandomPlayAuth(),
+        playAuthID: getRandomPlayAuthID(),
       },
     };
     ctx.body = response;

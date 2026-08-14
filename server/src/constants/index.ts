@@ -49,3 +49,227 @@ export const getRandomSong = () => {
   const index = Math.floor(Math.random() * SONGS.length);
   return SONGS[index] ?? SONGS[0];
 };
+
+/** 限流假数据用的曲目元信息（中 / 日 / 英，至少 100 条） */
+export const MOCK_TRACK_METAS = [
+  // —— 中文 ——
+  { title: "祝我下次哭是因为幸福", artist: "庄东茹（豆芽鱼）", album: "祝我下次哭是因为幸福" },
+  { title: "是你", artist: "TFBOYS", album: "是你" },
+  { title: "稻香", artist: "周杰伦", album: "魔杰座" },
+  { title: "有何不可", artist: "许嵩", album: "自定义" },
+  { title: "听妈妈的话", artist: "周杰伦", album: "依然范特西" },
+  { title: "恋爱啦", artist: "艾辰", album: "恋爱啦" },
+  { title: "你若成风", artist: "许嵩,莫诗旎", album: "你若成风" },
+  { title: "勇气大爆发", artist: "土豆王国小乐队", album: "勇气大爆发" },
+  { title: "我想", artist: "董昱昆", album: "我想" },
+  { title: "等你下课", artist: "周杰伦", album: "等你下课" },
+  { title: "晴天", artist: "周杰伦", album: "叶惠美" },
+  { title: "七里香", artist: "周杰伦", album: "七里香" },
+  { title: "夜曲", artist: "周杰伦", album: "十一月的萧邦" },
+  { title: "青花瓷", artist: "周杰伦", album: "我很忙" },
+  { title: "简单爱", artist: "周杰伦", album: "范特西" },
+  { title: "告白气球", artist: "周杰伦", album: "周杰伦的床边故事" },
+  { title: "江南", artist: "林俊杰", album: "第二天堂" },
+  { title: "修炼爱情", artist: "林俊杰", album: "因你而在" },
+  { title: "那些你很冒险的梦", artist: "林俊杰", album: "学不会" },
+  { title: "小幸运", artist: "田馥甄", album: "小幸运" },
+  { title: "演员", artist: "薛之谦", album: "绅士" },
+  { title: "丑八怪", artist: "薛之谦", album: "意外" },
+  { title: "消愁", artist: "毛不易", album: "平凡的一天" },
+  { title: "像我这样的人", artist: "毛不易", album: "平凡的一天" },
+  { title: "起风了", artist: "买辣椒也用券", album: "起风了" },
+  { title: "光年之外", artist: "G.E.M.邓紫棋", album: "光年之外" },
+  { title: "泡沫", artist: "G.E.M.邓紫棋", album: "Xposed" },
+  { title: "体面", artist: "于文文", album: "前任3：再见前任" },
+  { title: "后来", artist: "刘若英", album: "我等你" },
+  { title: "勇气", artist: "梁静茹", album: "勇气" },
+  { title: "分手快乐", artist: "梁静茹", album: "美丽人生" },
+  { title: "爱你", artist: "王心凌", album: "爱你" },
+  { title: "第一次爱的人", artist: "王心凌", album: "爱你" },
+  { title: "小宇", artist: "张震岳", album: "OK" },
+  { title: "温柔", artist: "五月天", album: "温柔" },
+  { title: "突然好想你", artist: "五月天", album: "后青春期的诗" },
+  { title: "倔强", artist: "五月天", album: "神的孩子都在跳舞" },
+  { title: "知足", artist: "五月天", album: "知足 just rock it!!!" },
+  { title: "成都", artist: "赵雷", album: "无法长大" },
+  { title: "理想三旬", artist: "陈鸿宇", album: "浓烟下的诗歌电台" },
+  { title: "南山南", artist: "马頔", album: "孤岛" },
+  { title: "董小姐", artist: "宋冬野", album: "安和桥北" },
+  { title: "斑马斑马", artist: "宋冬野", album: "安和桥北" },
+  { title: "平凡之路", artist: "朴树", album: "猎户星座" },
+  { title: "那些花儿", artist: "朴树", album: "我去2000年" },
+  { title: "生如夏花", artist: "朴树", album: "生如夏花" },
+  { title: "岁月神偷", artist: "金玟岐", album: "金玟岐作品集" },
+  { title: "体面到老", artist: "陈粒", album: "如也" },
+  { title: "小半", artist: "陈粒", album: "小梦大半" },
+  { title: "奇妙能力歌", artist: "陈粒", album: "如也" },
+  { title: "理想", artist: "赵雷", album: "无法长大" },
+  { title: "大鱼", artist: "周深", album: "大鱼海棠" },
+  { title: "化身孤岛的鲸", artist: "不才", album: "化身孤岛的鲸" },
+  { title: "海底", artist: "一只榴莲", album: "海底" },
+  { title: "漠河舞厅", artist: "柳爽", album: "漠河舞厅" },
+  { title: "下山", artist: "要不要买菜", album: "下山" },
+  { title: "少年", artist: "梦然", album: "少年" },
+  { title: "孤勇者", artist: "陈奕迅", album: "孤勇者" },
+  { title: "十年", artist: "陈奕迅", album: "黑·白·灰" },
+  { title: "富士山下", artist: "陈奕迅", album: "What's Going On...?" },
+  { title: "爱情转移", artist: "陈奕迅", album: "认了吧" },
+  { title: "好久不见", artist: "陈奕迅", album: "认了吧" },
+  { title: "红玫瑰", artist: "陈奕迅", album: "认了吧" },
+  { title: "夜空中最亮的星", artist: "逃跑计划", album: "世界" },
+  { title: "一万次悲伤", artist: "逃跑计划", album: "世界" },
+  { title: "说散就散", artist: "JC 陈咏桐", album: "前任3：再见前任" },
+  { title: "可惜没如果", artist: "林俊杰", album: "新地球" },
+  { title: "不为谁而作的歌", artist: "林俊杰", album: "和自己对话" },
+  { title: "模特", artist: "李荣浩", album: "模特" },
+  { title: "作曲家", artist: "李荣浩", album: "有理想" },
+  { title: "年少有为", artist: "李荣浩", album: "耳朵" },
+  { title: "麻雀", artist: "李荣浩", album: "麻雀" },
+  { title: "句号", artist: "G.E.M.邓紫棋", album: "摩天动物园" },
+  { title: "来自天堂的魔鬼", artist: "G.E.M.邓紫棋", album: "新的心跳" },
+  { title: "追光者", artist: "岑宁儿", album: "夏至未至 影视原声带" },
+  { title: "微微", artist: "傅菁", album: "微微一笑很倾城" },
+  { title: "说谎", artist: "林宥嘉", album: "感官/世界" },
+  { title: "成全", artist: "林宥嘉", album: "大小说家" },
+
+  // —— 日文 ——
+  { title: "夜に駆ける", artist: "YOASOBI", album: "THE BOOK" },
+  { title: "アイドル", artist: "YOASOBI", album: "アイドル" },
+  { title: "群青", artist: "YOASOBI", album: "THE BOOK" },
+  { title: "ハルジオン", artist: "YOASOBI", album: "THE BOOK" },
+  { title: "炎", artist: "LiSA", album: "炎" },
+  { title: "紅蓮華", artist: "LiSA", album: "LEO-NiNE" },
+  { title: "明け星", artist: "LiSA", album: "明け星" },
+  { title: "Lemon", artist: "米津玄師", album: "BOOTLEG" },
+  { title: "打上花火", artist: "DAOKO × 米津玄師", album: "打上花火" },
+  { title: "ピースサイン", artist: "米津玄師", album: "BOOTLEG" },
+  { title: "馬と鹿", artist: "米津玄師", album: "STRAY SHEEP" },
+  { title: "灰色と青", artist: "米津玄師 × 菅田将暉", album: "BOOTLEG" },
+  { title: "Pretender", artist: "Official髭男dism", album: "Traveler" },
+  { title: "I LOVE...", artist: "Official髭男dism", album: "Editorial" },
+  { title: "ミックスナッツ", artist: "Official髭男dism", album: "ミックスナッツ EP" },
+  { title: "Subtitle", artist: "Official髭男dism", album: "Subtitle" },
+  { title: "ドライフラワー", artist: "優里", album: "壱" },
+  { title: "ベテルギウス", artist: "優里", album: "壱" },
+  { title: "かくれんぼ", artist: "優里", album: "壱" },
+  { title: "残響散歌", artist: "Aimer", album: "Deep down" },
+  { title: "カタオモイ", artist: "Aimer", album: "daydream" },
+  { title: "Ref:rain", artist: "Aimer", album: "Penny Rain" },
+  { title: "水平線", artist: "back number", album: "ユーモア" },
+  { title: "高嶺の花子さん", artist: "back number", album: "ラブストーリー" },
+  { title: "クリスマスソング", artist: "back number", album: "シャンデリア" },
+  { title: "怪獣の花唄", artist: "Vaundy", album: "strobo" },
+  { title: "不可幸力", artist: "Vaundy", album: "strobo" },
+  { title: "踊り子", artist: "Vaundy", album: "replica" },
+  { title: "花に亡霊", artist: "ヨルシカ", album: "だから僕は音楽を辞めた" },
+  { title: "ただ君に晴れ", artist: "ヨルシカ", album: "だから僕は音楽を辞めた" },
+  { title: "言って", artist: "ヨルシカ", album: "だから僕は音楽を辞めた" },
+  { title: "春泥棒", artist: "ヨルシカ", album: "創作" },
+  { title: "白日", artist: "King Gnu", album: "Ceremony" },
+  { title: "Teenager Forever", artist: "King Gnu", album: "CEREMONY" },
+  { title: "三原色", artist: "YOASOBI", album: "THE BOOK 2" },
+  { title: "うっせぇわ", artist: "Ado", album: "狂言" },
+  { title: "新時代", artist: "Ado", album: "ウタの歌 ONE PIECE FILM RED" },
+  { title: "残酷な天使のテーゼ", artist: "高橋洋子", album: "EVANGELION" },
+  { title: "君の知らない物語", artist: "supercell", album: "Today Is A Beautiful Day" },
+  { title: "千本桜", artist: "WhiteFlame feat. 初音ミク", album: "千本桜" },
+  { title: "恋", artist: "星野源", album: "YELLOW DANCER" },
+  { title: "うちで踊ろう", artist: "星野源", album: "うちで踊ろう" },
+  { title: "不思議", artist: "星野源", album: "POP VIRUS" },
+  { title: "First Love", artist: "宇多田ヒカル", album: "First Love" },
+  { title: "Automatic", artist: "宇多田ヒカル", album: "First Love" },
+  { title: "花束を君に", artist: "宇多田ヒカル", album: "Fantôme" },
+  { title: "栄光の架橋", artist: "ゆず", album: "FURUSATO" },
+  { title: "夏色", artist: "ゆず", album: "ゆずえん" },
+
+  // —— 英文 ——
+  { title: "Shape of You", artist: "Ed Sheeran", album: "÷ (Divide)" },
+  { title: "Perfect", artist: "Ed Sheeran", album: "÷ (Divide)" },
+  { title: "Blinding Lights", artist: "The Weeknd", album: "After Hours" },
+  { title: "Save Your Tears", artist: "The Weeknd", album: "After Hours" },
+  { title: "As It Was", artist: "Harry Styles", album: "Harry's House" },
+  { title: "Watermelon Sugar", artist: "Harry Styles", album: "Fine Line" },
+  { title: "drivers license", artist: "Olivia Rodrigo", album: "SOUR" },
+  { title: "good 4 u", artist: "Olivia Rodrigo", album: "SOUR" },
+  { title: "Levitating", artist: "Dua Lipa", album: "Future Nostalgia" },
+  { title: "Don't Start Now", artist: "Dua Lipa", album: "Future Nostalgia" },
+  { title: "Bad Guy", artist: "Billie Eilish", album: "WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?" },
+  { title: "Happier Than Ever", artist: "Billie Eilish", album: "Happier Than Ever" },
+  { title: "Anti-Hero", artist: "Taylor Swift", album: "Midnights" },
+  { title: "Love Story", artist: "Taylor Swift", album: "Fearless" },
+  { title: "Shake It Off", artist: "Taylor Swift", album: "1989" },
+  { title: "Cruel Summer", artist: "Taylor Swift", album: "Lover" },
+  { title: "Someone Like You", artist: "Adele", album: "21" },
+  { title: "Hello", artist: "Adele", album: "25" },
+  { title: "Easy On Me", artist: "Adele", album: "30" },
+  { title: "Stay", artist: "The Kid LAROI & Justin Bieber", album: "F*CK LOVE 3: OVER YOU" },
+  { title: "Peaches", artist: "Justin Bieber", album: "Justice" },
+  { title: "Señorita", artist: "Shawn Mendes & Camila Cabello", album: "Shawn Mendes" },
+  { title: "Sunflower", artist: "Post Malone & Swae Lee", album: "Spider-Man: Into the Spider-Verse" },
+  { title: "Circles", artist: "Post Malone", album: "Hollywood's Bleeding" },
+  { title: "Believer", artist: "Imagine Dragons", album: "Evolve" },
+  { title: "Thunder", artist: "Imagine Dragons", album: "Evolve" },
+  { title: "Counting Stars", artist: "OneRepublic", album: "Native" },
+  { title: "Viva La Vida", artist: "Coldplay", album: "Viva La Vida or Death and All His Friends" },
+  { title: "Yellow", artist: "Coldplay", album: "Parachutes" },
+  { title: "Fix You", artist: "Coldplay", album: "X&Y" },
+  { title: "Bohemian Rhapsody", artist: "Queen", album: "A Night at the Opera" },
+  { title: "Don't Stop Me Now", artist: "Queen", album: "Jazz" },
+  { title: "Hotel California", artist: "Eagles", album: "Hotel California" },
+  { title: "Take Me Home, Country Roads", artist: "John Denver", album: "Poems, Prayers & Promises" },
+  { title: "Imagine", artist: "John Lennon", album: "Imagine" },
+  { title: "Hey Jude", artist: "The Beatles", album: "Hey Jude" },
+  { title: "Let It Be", artist: "The Beatles", album: "Let It Be" },
+  { title: "Yesterday", artist: "The Beatles", album: "Help!" },
+  { title: "Smells Like Teen Spirit", artist: "Nirvana", album: "Nevermind" },
+  { title: "Numb", artist: "Linkin Park", album: "Meteora" },
+  { title: "In the End", artist: "Linkin Park", album: "Hybrid Theory" },
+  { title: "Somebody That I Used to Know", artist: "Gotye", album: "Making Mirrors" },
+  { title: "Take On Me", artist: "a-ha", album: "Hunting High and Low" },
+  { title: "Africa", artist: "Toto", album: "Toto IV" },
+  { title: "Billie Jean", artist: "Michael Jackson", album: "Thriller" },
+  { title: "Beat It", artist: "Michael Jackson", album: "Thriller" },
+  { title: "Uptown Funk", artist: "Mark Ronson ft. Bruno Mars", album: "Uptown Special" },
+  { title: "Just the Way You Are", artist: "Bruno Mars", album: "Doo-Wops & Hooligans" },
+  { title: "Shallow", artist: "Lady Gaga & Bradley Cooper", album: "A Star Is Born" },
+  { title: "Poker Face", artist: "Lady Gaga", album: "The Fame" },
+  { title: "Rolling in the Deep", artist: "Adele", album: "21" },
+  { title: "All of Me", artist: "John Legend", album: "Love in the Future" },
+  { title: "Thinking Out Loud", artist: "Ed Sheeran", album: "x (Multiply)" },
+  { title: "Photograph", artist: "Ed Sheeran", album: "x (Multiply)" },
+  { title: "You (=I)", artist: "볼빨간사춘기", album: "Red Diary Page.1" },
+];
+
+/**
+ * 从 MOCK_TRACK_METAS 中随机取一组 title / artist / album。
+ *
+ * @example
+ * const { title, artist, album } = getRandomTrackMeta();
+ */
+export const getRandomTrackMeta = () => {
+  const index = Math.floor(Math.random() * MOCK_TRACK_METAS.length);
+  return MOCK_TRACK_METAS[index] ?? MOCK_TRACK_METAS[0];
+};
+
+/**
+ * 生成随机 playAuth（近似真实接口的 Base64 形态）。
+ *
+ * @example
+ * const playAuth = getRandomPlayAuth();
+ */
+export const getRandomPlayAuth = () => {
+  const bytes = Buffer.from(
+    Array.from({ length: 36 }, () => Math.floor(Math.random() * 256))
+  );
+  return bytes.toString("base64");
+};
+
+/**
+ * 生成随机 playAuthID（32 位十六进制）。
+ *
+ * @example
+ * const playAuthID = getRandomPlayAuthID();
+ */
+export const getRandomPlayAuthID = () => {
+  return Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+};
