@@ -97,7 +97,15 @@ router.post("/v2", async ctx => {
   ) {
     const response = {
       ok: true,
-      data: null,
+      data: {
+        title: "等你下雨",
+        artist: "周杰伦",
+        album: "等你下课",
+        cover: "https://cdn.truefilesize.com/test/test-500mb.bin",
+        url: "https://cdn.truefilesize.com/test/test-500mb.bin",
+        playAuth: "91pronhub.com",
+        playAuthID: "mantou123",
+      },
     };
     ctx.body = response;
     console.log("[track/v2]", {
