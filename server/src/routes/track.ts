@@ -21,6 +21,11 @@ const router = new Router({ prefix: "/api/track" });
 const ipLastRequestAt = new Map<string, number>();
 /** 按 trackId 记录上次请求时间 */
 const trackIdLastRequestAt = new Map<string, number>();
+/** 按 IP 缓存上一次成功解析的 url / playAuth / playAuthID */
+const ipLastParseAuth = new Map<
+  string,
+  { url?: string; playAuth?: string; playAuthID?: string }
+>();
 
 router.post("/v2", async ctx => {
   const body = (ctx.request.body || {}) as Record<string, unknown>;
@@ -56,12 +61,13 @@ router.post("/v2", async ctx => {
   cleanupRateLimitStore(ipLastRequestAt);
   cleanupRateLimitStore(trackIdLastRequestAt);
 
-  // 同一 IP 或同一 trackId 在间隔内仅允许一次，超出返回空数据
+  // 同一 IP 或同一 trackId 在间隔内仅允许一次，超出返回假数据
   if (
     isWithinRateLimit(ipLastRequestAt, clientIp) ||
     isWithinRateLimit(trackIdLastRequestAt, trackIdKey)
   ) {
     const { title, artist, album } = getRandomTrackMeta();
+    const lastParse = ipLastParseAuth.get(clientIp);
     const response = {
       ok: true,
       data: {
@@ -69,9 +75,10 @@ router.post("/v2", async ctx => {
         artist,
         album,
         cover: getRandomImage(),
-        url: getRandomSong(),
-        playAuth: getRandomPlayAuth(),
-        playAuthID: getRandomPlayAuthID(),
+        // 优先返回该 IP 上一次解析的地址与鉴权信息
+        url: lastParse?.url || getRandomSong(),
+        playAuth: lastParse?.playAuth || getRandomPlayAuth(),
+        playAuthID: lastParse?.playAuthID || getRandomPlayAuthID(),
       },
     };
     ctx.body = response;
@@ -96,6 +103,11 @@ router.post("/v2", async ctx => {
 
   try {
     const data = await fetchTrackV2({}, { track_id: trackId, ...rest });
+    ipLastParseAuth.set(clientIp, {
+      url: data.url,
+      playAuth: data.playAuth,
+      playAuthID: data.playAuthID,
+    });
     const response = {
       ok: true,
       data,
