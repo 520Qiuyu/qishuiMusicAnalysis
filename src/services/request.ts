@@ -1,7 +1,9 @@
 import axios, { type AxiosRequestConfig } from "axios";
 
+const isDev = import.meta.env.DEV;
+
 // const CORS_PROXY = "http://qiuyu520.fun/cors/?url=";
-const CORS_PROXY = "https://qiuyu520.fun/cors/?url=";
+const CORS_PROXY = isDev ? "http://qiuyu520.fun/cors/?url=" : "https://qiuyu520.fun/cors/?url=";
 
 const request = axios.create({
   timeout: 10000,

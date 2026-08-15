@@ -8,11 +8,15 @@ import {
 } from "../constants";
 import { fetchTrackV2 } from "../services/trackV2";
 import {
+  appendParseLog,
   cleanupRateLimitStore,
   getClientIp,
+  getClientIpChain,
+  isBlacklisted,
   isWithinRateLimit,
   markRateLimit,
   recordAndGetIpStats,
+  type ParseLogInput,
 } from "../utils";
 
 const router = new Router({ prefix: "/api/track" });
@@ -22,18 +26,46 @@ const ipLastRequestAt = new Map<string, number>();
 /** 按 trackId 记录上次请求时间 */
 const trackIdLastRequestAt = new Map<string, number>();
 /** 按 IP 缓存上一次成功解析的 url / playAuth / playAuthID */
-const ipLastParseAuth = new Map<
-  string,
-  { url?: string; playAuth?: string; playAuthID?: string }
->();
+const ipLastParseAuth = new Map<string, { url?: string; playAuth?: string; playAuthID?: string }>();
+let lastUrl = "";
+
+const buildFakeTrackResponse = (clientIp: string) => {
+  const { title, artist, album } = getRandomTrackMeta();
+  const lastParse = ipLastParseAuth.get(clientIp);
+  return {
+    ok: true,
+    data: {
+      title,
+      artist,
+      album,
+      cover: getRandomImage(),
+      // 优先返回该 IP 上一次解析的地址与鉴权信息
+      url: lastParse?.url || lastUrl || getRandomSong(),
+      playAuth: lastParse?.playAuth || getRandomPlayAuth(),
+      playAuthID: lastParse?.playAuthID || getRandomPlayAuthID(),
+    },
+  };
+};
+
+const recordTrackLog = (payload: ParseLogInput, level: "log" | "error" = "log") => {
+  appendParseLog(payload);
+  if (level === "error") {
+    console.error("[track/v2]", payload);
+    return;
+  }
+  console.log("[track/v2]", payload);
+};
 
 router.post("/v2", async ctx => {
   const body = (ctx.request.body || {}) as Record<string, unknown>;
   const { track_id: trackId, ...rest } = body;
   const startedAt = Date.now();
   const requestTime = new Date().toISOString();
+  const ipChain = getClientIpChain(ctx);
   const clientIp = getClientIp(ctx);
   const { ipWindowCount, ipTotalCount } = recordAndGetIpStats(clientIp);
+  const blacklisted = isBlacklisted(ipChain);
+  const ip = ipChain.join(", ");
 
   if (!trackId) {
     const response = {
@@ -42,15 +74,17 @@ router.post("/v2", async ctx => {
     };
     ctx.status = 400;
     ctx.body = response;
-    console.log("[track/v2]", {
+    recordTrackLog({
       time: requestTime,
-      ip: clientIp,
+      ip,
+      ips: ipChain,
       /** 该 IP 限制时间内请求数量 */
       ipWindowCount,
       /** 该 IP 总请求数量 */
       ipTotalCount,
       durationMs: Date.now() - startedAt,
       status: 400,
+      blacklisted,
       params: body,
       response,
     });
@@ -61,37 +95,26 @@ router.post("/v2", async ctx => {
   cleanupRateLimitStore(ipLastRequestAt);
   cleanupRateLimitStore(trackIdLastRequestAt);
 
-  // 同一 IP 或同一 trackId 在间隔内仅允许一次，超出返回假数据
-  if (
+  const rateLimited =
     isWithinRateLimit(ipLastRequestAt, clientIp) ||
-    isWithinRateLimit(trackIdLastRequestAt, trackIdKey)
-  ) {
-    const { title, artist, album } = getRandomTrackMeta();
-    const lastParse = ipLastParseAuth.get(clientIp);
-    const response = {
-      ok: true,
-      data: {
-        title,
-        artist,
-        album,
-        cover: getRandomImage(),
-        // 优先返回该 IP 上一次解析的地址与鉴权信息
-        url: lastParse?.url || getRandomSong(),
-        playAuth: lastParse?.playAuth || getRandomPlayAuth(),
-        playAuthID: lastParse?.playAuthID || getRandomPlayAuthID(),
-      },
-    };
+    isWithinRateLimit(trackIdLastRequestAt, trackIdKey);
+
+  // 黑名单或同一 IP / trackId 在间隔内仅允许一次，超出返回假数据
+  if (blacklisted || rateLimited) {
+    const response = buildFakeTrackResponse(clientIp);
     ctx.body = response;
-    console.log("[track/v2]", {
+    recordTrackLog({
       time: requestTime,
-      ip: clientIp,
+      ip,
+      ips: ipChain,
       /** 该 IP 限制时间内请求数量 */
       ipWindowCount,
       /** 该 IP 总请求数量 */
       ipTotalCount,
       durationMs: Date.now() - startedAt,
       status: 200,
-      rateLimited: true,
+      rateLimited,
+      blacklisted,
       params: body,
       response,
     });
@@ -113,9 +136,11 @@ router.post("/v2", async ctx => {
       data,
     };
     ctx.body = response;
-    console.log("[track/v2]", {
+    lastUrl = data.url!;
+    recordTrackLog({
       time: requestTime,
-      ip: clientIp,
+      ip,
+      ips: ipChain,
       /** 该 IP 限制时间内请求数量 */
       ipWindowCount,
       /** 该 IP 总请求数量 */
@@ -132,19 +157,23 @@ router.post("/v2", async ctx => {
     };
     ctx.status = 500;
     ctx.body = response;
-    console.error("[track/v2]", {
-      time: requestTime,
-      ip: clientIp,
-      /** 该 IP 限制时间内请求数量 */
-      ipWindowCount,
-      /** 该 IP 总请求数量 */
-      ipTotalCount,
-      durationMs: Date.now() - startedAt,
-      status: 500,
-      params: body,
-      response,
-      error: error instanceof Error ? error.stack || error.message : error,
-    });
+    recordTrackLog(
+      {
+        time: requestTime,
+        ip,
+        ips: ipChain,
+        /** 该 IP 限制时间内请求数量 */
+        ipWindowCount,
+        /** 该 IP 总请求数量 */
+        ipTotalCount,
+        durationMs: Date.now() - startedAt,
+        status: 500,
+        params: body,
+        response,
+        error: error instanceof Error ? error.stack || error.message : error,
+      },
+      "error"
+    );
   }
 });
 

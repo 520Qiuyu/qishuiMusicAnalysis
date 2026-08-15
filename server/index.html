@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>解析控制台</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --app-font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial,
+          sans-serif;
+        --color-bg: #f5f5f7;
+        --color-bg-soft: #fbfbfd;
+        --color-card: rgba(255, 255, 255, 0.72);
+        --color-card-solid: #ffffff;
+        --color-text: #1d1d1f;
+        --color-text-muted: #6e6e73;
+        --color-text-subtle: #86868b;
+        --color-border: rgba(0, 0, 0, 0.08);
+        --color-hairline: rgba(255, 255, 255, 0.62);
+        --color-fill: rgba(0, 0, 0, 0.04);
+        --color-fill-strong: rgba(0, 0, 0, 0.07);
+        --color-primary: #0071e3;
+        --color-primary-hover: #0077ed;
+        --color-success: #34c759;
+        --color-warning: #ff9f0a;
+        --color-danger: #ff3b30;
+        --color-scrim: rgba(0, 0, 0, 0.28);
+        --shadow-card: 0 18px 50px rgba(0, 0, 0, 0.08);
+        --shadow-control: 0 8px 24px rgba(0, 113, 227, 0.18);
+        --radius-xl: 28px;
+        --radius-lg: 22px;
+        --radius-md: 16px;
+        --radius-sm: 12px;
+        --page-padding: clamp(16px, 4vw, 40px);
+        --content-width: 1080px;
+        --blur: 28px;
+        font: 100%/1.45 var(--app-font-family);
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --color-bg: #000000;
+          --color-bg-soft: #161618;
+          --color-card: rgba(28, 28, 30, 0.72);
+          --color-card-solid: #1c1c1e;
+          --color-text: #f5f5f7;
+          --color-text-muted: #a1a1a6;
+          --color-text-subtle: #8e8e93;
+          --color-border: rgba(255, 255, 255, 0.1);
+          --color-hairline: rgba(255, 255, 255, 0.12);
+          --color-fill: rgba(255, 255, 255, 0.08);
+          --color-fill-strong: rgba(255, 255, 255, 0.14);
+          --color-scrim: rgba(0, 0, 0, 0.55);
+          --shadow-card: 0 18px 50px rgba(0, 0, 0, 0.45);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        color: var(--color-text);
+        background:
+          radial-gradient(circle at 12% -10%, rgba(0, 113, 227, 0.16), transparent 32%),
+          radial-gradient(circle at 88% 6%, rgba(52, 199, 89, 0.12), transparent 30%),
+          linear-gradient(180deg, var(--color-bg-soft) 0%, var(--color-bg) 52%, #eeeeef 100%);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background:
+            radial-gradient(circle at 12% -10%, rgba(10, 132, 255, 0.22), transparent 32%),
+            radial-gradient(circle at 88% 6%, rgba(48, 209, 88, 0.12), transparent 30%),
+            linear-gradient(180deg, #0b0b0d 0%, #000 100%);
+        }
+      }
+
+      button,
+      input {
+        font: inherit;
+        color: inherit;
+      }
+
+      button {
+        border: 0;
+        background: none;
+        cursor: pointer;
+      }
+
+      button:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 3px;
+      }
+
+      .pressable {
+        transition: transform 100ms ease-out, background-color 160ms ease;
+      }
+
+      .pressable:active {
+        transform: scale(0.97);
+      }
+
+      .app {
+        width: min(100%, var(--content-width));
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 18px var(--page-padding) 48px;
+      }
+
+      .gate {
+        display: grid;
+        min-height: calc(100vh - 36px);
+        place-items: center;
+      }
+
+      .gate-card,
+      .panel,
+      .stat,
+      .log-item,
+      .ban-item,
+      .empty,
+      .sheet-panel {
+        border: 1px solid var(--color-hairline);
+        background: var(--color-card);
+        box-shadow: var(--shadow-card);
+        backdrop-filter: blur(var(--blur)) saturate(180%);
+        -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+      }
+
+      .gate-card {
+        width: min(100%, 420px);
+        padding: 36px 28px 28px;
+        border-radius: var(--radius-xl);
+        text-align: center;
+      }
+
+      .mark {
+        display: grid;
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 18px;
+        place-items: center;
+        color: #fff;
+        border-radius: 18px;
+        background: linear-gradient(145deg, #1d8cff, #0064d2);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.32),
+          0 10px 24px rgba(0, 113, 227, 0.28);
+      }
+
+      .display {
+        margin: 0;
+        font-size: clamp(1.8rem, 4vw, 2.2rem);
+        font-weight: 700;
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+      }
+
+      .lede {
+        margin: 8px 0 0;
+        color: var(--color-text-muted);
+        font-size: 15px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+        margin-top: 28px;
+        text-align: left;
+      }
+
+      .field span {
+        color: var(--color-text-subtle);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+
+      input[type="password"],
+      input[type="text"],
+      input[type="search"] {
+        width: 100%;
+        min-height: 48px;
+        padding: 0 16px;
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        background: var(--color-fill);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 999px;
+        font-weight: 600;
+      }
+
+      .btn-primary {
+        width: 100%;
+        margin-top: 16px;
+        color: #fff;
+        background: var(--color-primary);
+        box-shadow: var(--shadow-control);
+      }
+
+      .btn-primary:hover,
+      .btn-primary:focus-visible {
+        background: var(--color-primary-hover);
+      }
+
+      .btn-ghost {
+        color: var(--color-text);
+        background: var(--color-fill);
+      }
+
+      .btn-ghost:hover,
+      .btn-ghost:focus-visible {
+        background: var(--color-fill-strong);
+      }
+
+      .btn-danger {
+        color: #fff;
+        background: var(--color-danger);
+      }
+
+      .btn:disabled {
+        cursor: wait;
+        opacity: 0.6;
+      }
+
+      .error {
+        min-height: 1.2em;
+        margin: 10px 0 0;
+        color: var(--color-danger);
+        font-size: 13px;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 12px;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 28px;
+        padding: 8px 8px 8px 14px;
+        border: 1px solid var(--color-hairline);
+        border-radius: 999px;
+        background: var(--color-card);
+        box-shadow: 0 10px 34px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        color: #fff;
+        border-radius: 11px;
+        background: linear-gradient(145deg, #1d8cff, #0064d2);
+      }
+
+      .brand-title {
+        overflow: hidden;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .topbar-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .segmented {
+        display: flex;
+        padding: 3px;
+        border-radius: 999px;
+        background: var(--color-fill);
+      }
+
+      .segmented button {
+        min-height: 34px;
+        padding: 0 14px;
+        border-radius: 999px;
+        color: var(--color-text-muted);
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .segmented button[aria-selected="true"] {
+        color: var(--color-text);
+        background: var(--color-card-solid);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .stat {
+        padding: 16px 18px;
+        border-radius: var(--radius-lg);
+      }
+
+      .stat b {
+        display: block;
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+      }
+
+      .stat span {
+        color: var(--color-text-subtle);
+        font-size: 13px;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .toolbar > input {
+        flex: 1 1 220px;
+      }
+
+      .toolbar .btn {
+        width: auto;
+        flex: none;
+      }
+
+      .pager {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .pager-info {
+        min-width: 9em;
+        color: var(--color-text-muted);
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .pager .btn:disabled {
+        cursor: default;
+        opacity: 0.38;
+      }
+
+      .log-item,
+      .ban-item {
+        display: grid;
+        gap: 6px;
+        width: 100%;
+        padding: 16px 18px;
+        border: 0;
+        border-bottom: 1px solid var(--color-border);
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        text-align: left;
+      }
+
+      .log-item {
+        grid-template-columns: 22px minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+      }
+
+      .log-item.is-selected {
+        background: rgba(0, 113, 227, 0.08);
+      }
+
+      .log-check {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--color-primary);
+        cursor: pointer;
+      }
+
+      .log-body {
+        display: grid;
+        gap: 6px;
+        width: 100%;
+        padding: 0;
+        background: transparent;
+        text-align: left;
+      }
+
+      .select-all {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: var(--color-fill);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .select-all input {
+        width: 18px;
+        height: 18px;
+        flex: none;
+        margin: 0;
+        accent-color: var(--color-primary);
+        cursor: pointer;
+      }
+
+      .log-item:last-child,
+      .ban-item:last-child {
+        border-bottom: 0;
+      }
+
+      .log-item:hover,
+      .ban-item:hover {
+        background: var(--color-fill);
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .ip {
+        font-weight: 650;
+        letter-spacing: -0.01em;
+        word-break: break-all;
+      }
+
+      .meta {
+        color: var(--color-text-subtle);
+        font-size: 13px;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .chip-ok {
+        color: #0b7a32;
+        background: rgba(52, 199, 89, 0.16);
+      }
+
+      .chip-warn {
+        color: #9a5b00;
+        background: rgba(255, 159, 10, 0.18);
+      }
+
+      .chip-bad {
+        color: #c31414;
+        background: rgba(255, 59, 48, 0.16);
+      }
+
+      .empty {
+        padding: 56px 24px;
+        border-radius: var(--radius-xl);
+        color: var(--color-text-muted);
+        text-align: center;
+      }
+
+      .sheet {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        display: none;
+        align-items: end;
+        pointer-events: none;
+      }
+
+      .sheet.is-open {
+        display: grid;
+        pointer-events: auto;
+      }
+
+      .sheet-scrim {
+        position: absolute;
+        inset: 0;
+        background: var(--color-scrim);
+        opacity: 0;
+      }
+
+      .sheet-panel {
+        position: relative;
+        width: min(100%, 720px);
+        max-height: min(86vh, 860px);
+        margin: 0 auto;
+        padding: 10px 20px 24px;
+        overflow: auto;
+        border-bottom: 0;
+        border-radius: 28px 28px 0 0;
+        will-change: transform;
+      }
+
+      .grabber {
+        width: 42px;
+        height: 5px;
+        margin: 6px auto 16px;
+        border-radius: 99px;
+        background: rgba(128, 128, 128, 0.35);
+      }
+
+      .sheet-title {
+        margin: 0 0 4px;
+        font-size: 22px;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+      }
+
+      pre {
+        overflow: auto;
+        max-height: 360px;
+        padding: 14px;
+        border-radius: var(--radius-md);
+        background: var(--color-fill);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .sheet-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .toast {
+        position: fixed;
+        top: 18px;
+        left: 50%;
+        z-index: 40;
+        min-width: 180px;
+        padding: 12px 16px;
+        border-radius: 16px;
+        color: #fff;
+        background: rgba(29, 29, 31, 0.92);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        transform: translate(-50%, -120%);
+        will-change: transform;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (min-width: 760px) {
+        .sheet {
+          place-items: center;
+        }
+
+        .sheet-panel {
+          max-height: min(80vh, 760px);
+          border-radius: 28px;
+        }
+
+        .grabber {
+          display: none;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .stats {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .topbar {
+          border-radius: 24px;
+          padding: 10px;
+        }
+
+        .brand-title {
+          display: none;
+        }
+      }
+
+      @media (prefers-reduced-transparency: reduce) {
+        .gate-card,
+        .panel,
+        .stat,
+        .topbar,
+        .empty,
+        .sheet-panel {
+          background: var(--color-card-solid);
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+        }
+      }
+
+      @media (prefers-contrast: more) {
+        .gate-card,
+        .panel,
+        .stat,
+        .topbar,
+        .empty,
+        .sheet-panel,
+        input {
+          border: 1px solid var(--color-text);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .pressable,
+        .pressable:active,
+        .toast,
+        .sheet-panel,
+        .sheet-scrim {
+          transition: opacity 200ms ease !important;
+          transform: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <section id="gate" class="gate" aria-label="口令验证">
+        <form class="gate-card" id="unlock-form">
+          <div class="mark" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M7 11V8a5 5 0 0 1 10 0v3"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+              <rect x="5" y="11" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.8" />
+            </svg>
+          </div>
+          <h1 class="display">解析控制台</h1>
+          <p class="lede">输入管理口令，查看 24 小时解析日志并管理 IP 黑名单。</p>
+          <label class="field">
+            <span>管理口令</span>
+            <input
+              id="token-input"
+              type="password"
+              name="token"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="X-Admin-Token"
+              aria-label="管理口令"
+            />
+          </label>
+          <button class="btn btn-primary pressable" id="unlock-btn" type="submit">进入</button>
+          <p class="error" id="gate-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section id="workspace" class="hidden" aria-label="控制台">
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M9 19V6.4c0-.7.4-1.3 1.1-1.5l8.2-2.4c1.2-.4 2.4.5 2.4 1.8V15"
+                />
+                <circle cx="7" cy="19" r="3" />
+                <circle cx="18" cy="15" r="3" />
+              </svg>
+            </span>
+            <span class="brand-title">汽水解析</span>
+          </div>
+          <div class="topbar-actions">
+            <div class="segmented" role="tablist" aria-label="功能切换">
+              <button type="button" id="tab-logs" role="tab" aria-selected="true">解析日志</button>
+              <button type="button" id="tab-blacklist" role="tab" aria-selected="false">黑名单</button>
+            </div>
+            <button class="btn btn-ghost pressable" id="refresh-btn" type="button" aria-label="刷新">
+              刷新
+            </button>
+            <button class="btn btn-ghost pressable" id="logout-btn" type="button" aria-label="退出">
+              退出
+            </button>
+          </div>
+        </header>
+
+        <section id="logs-view">
+          <div class="stats" aria-label="日志概览">
+            <div class="stat">
+              <b id="stat-total">0</b>
+              <span>24 小时请求</span>
+            </div>
+            <div class="stat">
+              <b id="stat-limited">0</b>
+              <span>限流返回</span>
+            </div>
+            <div class="stat">
+              <b id="stat-banned">0</b>
+              <span>黑名单命中</span>
+            </div>
+            <div class="stat">
+              <b id="stat-failed">0</b>
+              <span>失败请求</span>
+            </div>
+          </div>
+          <div class="toolbar">
+            <input
+              id="ip-filter"
+              type="search"
+              placeholder="模糊搜索 IP，例如 171.2"
+              aria-label="按 IP 模糊筛选日志"
+            />
+            <label class="select-all">
+              <input id="select-all" type="checkbox" aria-label="全选当前列表" />
+              全选
+            </label>
+            <button class="btn btn-danger pressable" id="ban-selected" type="button" disabled>
+              封禁所选
+            </button>
+          </div>
+          <div id="logs-list" class="panel" role="list"></div>
+          <nav id="logs-pager" class="pager hidden" aria-label="日志分页">
+            <button class="btn btn-ghost pressable" id="logs-prev" type="button">上一页</button>
+            <span class="pager-info" id="logs-page-info">第 1 页</span>
+            <button class="btn btn-ghost pressable" id="logs-next" type="button">下一页</button>
+          </nav>
+        </section>
+
+        <section id="blacklist-view" class="hidden">
+          <form class="toolbar" id="ban-form">
+            <input
+              id="ban-ip"
+              type="text"
+              placeholder="完整 IP 或片段，例如 172.2"
+              aria-label="封禁 IP 或 IP 片段"
+            />
+            <button class="btn btn-primary pressable" id="ban-btn" type="submit" style="width: auto">
+              封禁
+            </button>
+          </form>
+          <div id="blacklist-list" class="panel" role="list"></div>
+          <nav id="blacklist-pager" class="pager hidden" aria-label="黑名单分页">
+            <button class="btn btn-ghost pressable" id="blacklist-prev" type="button">上一页</button>
+            <span class="pager-info" id="blacklist-page-info">第 1 页</span>
+            <button class="btn btn-ghost pressable" id="blacklist-next" type="button">下一页</button>
+          </nav>
+        </section>
+      </section>
+    </div>
+
+    <div id="sheet" class="sheet" hidden>
+      <div class="sheet-scrim" id="sheet-scrim"></div>
+      <section
+        class="sheet-panel"
+        id="sheet-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sheet-title"
+        tabindex="-1"
+      >
+        <div class="grabber" aria-hidden="true"></div>
+        <div class="row">
+          <h2 class="sheet-title" id="sheet-title">请求详情</h2>
+          <button class="btn btn-ghost pressable" id="sheet-close" type="button" aria-label="关闭">
+            完成
+          </button>
+        </div>
+        <p class="meta" id="sheet-sub"></p>
+        <div class="chips" id="sheet-chips" style="margin: 12px 0"></div>
+        <pre id="sheet-json"></pre>
+        <div class="sheet-actions">
+          <button class="btn btn-danger pressable" id="sheet-ban" type="button">封禁链路 IP</button>
+        </div>
+      </section>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      const TOKEN_KEY = "qishui-admin-token";
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const els = {
+        gate: document.getElementById("gate"),
+        workspace: document.getElementById("workspace"),
+        unlockForm: document.getElementById("unlock-form"),
+        tokenInput: document.getElementById("token-input"),
+        unlockBtn: document.getElementById("unlock-btn"),
+        gateError: document.getElementById("gate-error"),
+        tabLogs: document.getElementById("tab-logs"),
+        tabBlacklist: document.getElementById("tab-blacklist"),
+        refreshBtn: document.getElementById("refresh-btn"),
+        logoutBtn: document.getElementById("logout-btn"),
+        logsView: document.getElementById("logs-view"),
+        blacklistView: document.getElementById("blacklist-view"),
+        ipFilter: document.getElementById("ip-filter"),
+        selectAll: document.getElementById("select-all"),
+        banSelected: document.getElementById("ban-selected"),
+        logsList: document.getElementById("logs-list"),
+        logsPager: document.getElementById("logs-pager"),
+        logsPrev: document.getElementById("logs-prev"),
+        logsNext: document.getElementById("logs-next"),
+        logsPageInfo: document.getElementById("logs-page-info"),
+        banForm: document.getElementById("ban-form"),
+        banIp: document.getElementById("ban-ip"),
+        banBtn: document.getElementById("ban-btn"),
+        blacklistList: document.getElementById("blacklist-list"),
+        blacklistPager: document.getElementById("blacklist-pager"),
+        blacklistPrev: document.getElementById("blacklist-prev"),
+        blacklistNext: document.getElementById("blacklist-next"),
+        blacklistPageInfo: document.getElementById("blacklist-page-info"),
+        statTotal: document.getElementById("stat-total"),
+        statLimited: document.getElementById("stat-limited"),
+        statBanned: document.getElementById("stat-banned"),
+        statFailed: document.getElementById("stat-failed"),
+        sheet: document.getElementById("sheet"),
+        sheetScrim: document.getElementById("sheet-scrim"),
+        sheetPanel: document.getElementById("sheet-panel"),
+        sheetTitle: document.getElementById("sheet-title"),
+        sheetSub: document.getElementById("sheet-sub"),
+        sheetChips: document.getElementById("sheet-chips"),
+        sheetJson: document.getElementById("sheet-json"),
+        sheetClose: document.getElementById("sheet-close"),
+        sheetBan: document.getElementById("sheet-ban"),
+        toast: document.getElementById("toast"),
+      };
+
+      const state = {
+        token: sessionStorage.getItem(TOKEN_KEY) || "",
+        view: "logs",
+        logs: [],
+        logsPage: 1,
+        blacklist: [],
+        blacklistPage: 1,
+        selectedIds: new Set(),
+        selectedLog: null,
+        loading: false,
+        sheetOpen: false,
+        sheetY: 0,
+        toastTimer: 0,
+        refreshTimer: 0,
+        filterTimer: 0,
+      };
+
+      /**
+       * 携带 X-Admin-Token 请求管理接口。
+       *
+       * @param {string} path 相对路径，如 api/logs
+       * @param {RequestInit} [options]
+       * @example
+       * const data = await request("api/logs");
+       */
+      const request = async (path, options = {}) => {
+        const headers = new Headers(options.headers || {});
+        headers.set("X-Admin-Token", state.token);
+        if (options.body && !headers.has("Content-Type")) {
+          headers.set("Content-Type", "application/json");
+        }
+
+        const response = await fetch(path, { ...options, headers });
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 401) {
+          handleLogout(false);
+          throw new Error(data.message || "口令无效");
+        }
+        if (!response.ok || data.ok === false) {
+          throw new Error(data.message || "请求失败");
+        }
+        return data;
+      };
+
+      /**
+       * 指数衰减投影落点，用于手势释放后的吸附。
+       *
+       * @param {number} initialVelocity 像素/秒
+       * @param {number} [decelerationRate=0.998]
+       * @example
+       * const projected = currentY + project(velocity);
+       */
+      const project = (initialVelocity, decelerationRate = 0.998) => {
+        return ((initialVelocity / 1000) * decelerationRate) / (1 - decelerationRate);
+      };
+
+      /**
+       * 越过边界时的橡胶回弹位移。
+       *
+       * @param {number} overshoot
+       * @param {number} dimension
+       * @param {number} [constant=0.55]
+       */
+      const rubberband = (overshoot, dimension, constant = 0.55) => {
+        return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
+      };
+
+      /**
+       * 从当前值弹簧过渡到目标值。
+       *
+       * @param {number} from
+       * @param {number} to
+       * @param {(value: number) => void} onUpdate
+       * @param {{ damping?: number, response?: number, velocity?: number, onComplete?: () => void }} [options]
+       */
+      const animateSpring = (from, to, onUpdate, options = {}) => {
+        if (prefersReducedMotion) {
+          onUpdate(to);
+          options.onComplete?.();
+          return () => {};
+        }
+
+        const dampingRatio = options.damping ?? 1;
+        const response = options.response ?? 0.35;
+        const omega = (2 * Math.PI) / response;
+        const stiffness = omega * omega;
+        const damping = 2 * dampingRatio * omega;
+        let value = from;
+        let velocity = options.velocity ?? 0;
+        let last = performance.now();
+        let raf = 0;
+
+        const tick = now => {
+          const dt = Math.min(0.032, (now - last) / 1000);
+          last = now;
+          const force = -stiffness * (value - to);
+          velocity += (force - damping * velocity) * dt;
+          value += velocity * dt;
+          onUpdate(value);
+          if (Math.abs(value - to) < 0.4 && Math.abs(velocity) < 8) {
+            onUpdate(to);
+            options.onComplete?.();
+            return;
+          }
+          raf = requestAnimationFrame(tick);
+        };
+
+        raf = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf);
+      };
+
+      /**
+       * 转义插入 HTML 的文本。
+       *
+       * @param {unknown} value
+       * @example
+       * el.innerHTML = `<span>${escapeHtml(ip)}</span>`;
+       */
+      const escapeHtml = value =>
+        String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+
+      const formatTime = iso => {
+        const date = new Date(iso);
+        if (Number.isNaN(date.getTime())) {
+          return String(iso);
+        }
+        return date.toLocaleString("zh-CN", { hour12: false });
+      };
+
+      const showToast = message => {
+        els.toast.textContent = message;
+        els.toast.hidden = false;
+        animateSpring(-120, 0, value => {
+          els.toast.style.transform = `translate(-50%, ${value}%)`;
+        }, { damping: 0.86, response: 0.32 });
+        window.clearTimeout(state.toastTimer);
+        state.toastTimer = window.setTimeout(() => {
+          animateSpring(0, -120, value => {
+            els.toast.style.transform = `translate(-50%, ${value}%)`;
+          }, {
+            damping: 1,
+            response: 0.28,
+            onComplete: () => {
+              els.toast.hidden = true;
+            },
+          });
+        }, 1800);
+      };
+
+      const setBusy = (button, busy, label) => {
+        button.disabled = busy;
+        if (label) {
+          button.textContent = busy ? "处理中…" : label;
+        }
+      };
+
+      const renderChips = log => {
+        const chips = [`<span class="chip ${log.status < 400 ? "chip-ok" : "chip-bad"}">${log.status}</span>`];
+        if (log.rateLimited) {
+          chips.push('<span class="chip chip-warn">限流</span>');
+        }
+        if (log.blacklisted) {
+          chips.push('<span class="chip chip-bad">黑名单</span>');
+        }
+        return chips.join("");
+      };
+
+      const renderEmpty = text => `<div class="empty">${text}</div>`;
+
+      /**
+       * 将日志中的 IP 链路拆成去重列表。
+       *
+       * @param {{ ip?: string, ips?: string[] }} log
+       * @example
+       * const hops = getLogIps(log);
+       */
+      const getLogIps = log => {
+        if (Array.isArray(log?.ips) && log.ips.length) {
+          return [...new Set(log.ips.map(item => String(item).trim()).filter(Boolean))];
+        }
+        return String(log?.ip || "")
+          .split(",")
+          .map(item => item.trim())
+          .filter(Boolean);
+      };
+
+      const formatIpChain = log => getLogIps(log).join(" → ") || String(log?.ip || "");
+
+      /**
+       * 当前已勾选日志对应的去重 IP（含完整链路每一跳）。
+       *
+       * @example
+       * const ips = getSelectedIps();
+       */
+      const getSelectedIps = () => {
+        return [
+          ...new Set(
+            state.logs.filter(log => state.selectedIds.has(log.id)).flatMap(log => getLogIps(log))
+          ),
+        ];
+      };
+
+      const syncSelectBar = () => {
+        const total = state.logs.length;
+        const selectedRowCount = state.logs.filter(log => state.selectedIds.has(log.id)).length;
+        els.selectAll.checked = total > 0 && selectedRowCount === total;
+        els.selectAll.indeterminate = selectedRowCount > 0 && selectedRowCount < total;
+        const ips = getSelectedIps();
+        els.banSelected.disabled = ips.length === 0;
+        els.banSelected.textContent = ips.length ? `封禁所选 (${ips.length})` : "封禁所选";
+      };
+
+      const PAGE_SIZE = 200;
+
+      const renderLogs = () => {
+        state.selectedIds = new Set(
+          [...state.selectedIds].filter(id => state.logs.some(log => log.id === id))
+        );
+        els.statTotal.textContent = String(state.logs.length);
+        els.statLimited.textContent = String(state.logs.filter(item => item.rateLimited).length);
+        els.statBanned.textContent = String(state.logs.filter(item => item.blacklisted).length);
+        els.statFailed.textContent = String(state.logs.filter(item => item.status >= 400).length);
+
+        if (!state.logs.length) {
+          state.logsPage = 1;
+          els.logsList.innerHTML = renderEmpty("最近 24 小时还没有解析日志");
+          els.logsPager.classList.add("hidden");
+          syncSelectBar();
+          return;
+        }
+
+        const pageCount = Math.max(1, Math.ceil(state.logs.length / PAGE_SIZE));
+        state.logsPage = Math.min(Math.max(1, state.logsPage), pageCount);
+        const start = (state.logsPage - 1) * PAGE_SIZE;
+        const pageItems = state.logs.slice(start, start + PAGE_SIZE);
+
+        els.logsList.innerHTML = pageItems
+          .map(log => {
+            const checked = state.selectedIds.has(log.id);
+            return `
+              <div class="log-item${checked ? " is-selected" : ""}" role="listitem">
+                <input
+                  class="log-check"
+                  type="checkbox"
+                  data-check-id="${escapeHtml(log.id)}"
+                  ${checked ? "checked" : ""}
+                  aria-label="选择 ${escapeHtml(formatIpChain(log))}"
+                />
+                <button class="log-body pressable" type="button" data-id="${escapeHtml(log.id)}" aria-label="查看 ${escapeHtml(formatIpChain(log))} 的请求详情">
+                  <div class="row">
+                    <span class="ip">${escapeHtml(formatIpChain(log))}</span>
+                    <span class="chips">${renderChips(log)}</span>
+                  </div>
+                  <div class="row meta">
+                    <span>${escapeHtml(formatTime(log.time))}</span>
+                    <span>${escapeHtml(log.durationMs)}ms · 窗口 ${escapeHtml(log.ipWindowCount)} · 总计 ${escapeHtml(log.ipTotalCount)}</span>
+                  </div>
+                </button>
+              </div>
+            `;
+          })
+          .join("");
+
+        els.logsPager.classList.toggle("hidden", pageCount <= 1);
+        els.logsPageInfo.textContent = `第 ${state.logsPage} / ${pageCount} 页 · ${state.logs.length} 条`;
+        els.logsPrev.disabled = state.logsPage <= 1;
+        els.logsNext.disabled = state.logsPage >= pageCount;
+        syncSelectBar();
+      };
+
+      const renderBlacklist = () => {
+        if (!state.blacklist.length) {
+          state.blacklistPage = 1;
+          els.blacklistList.innerHTML = renderEmpty("黑名单是空的，可添加完整 IP 或片段如 172.2");
+          els.blacklistPager.classList.add("hidden");
+          return;
+        }
+
+        const pageCount = Math.max(1, Math.ceil(state.blacklist.length / PAGE_SIZE));
+        state.blacklistPage = Math.min(Math.max(1, state.blacklistPage), pageCount);
+        const start = (state.blacklistPage - 1) * PAGE_SIZE;
+        const pageItems = state.blacklist.slice(start, start + PAGE_SIZE);
+
+        els.blacklistList.innerHTML = pageItems
+          .map(
+            item => `
+              <div class="ban-item" role="listitem">
+                <div class="row">
+                  <span class="ip">${escapeHtml(item.ip)}</span>
+                  <button class="btn btn-ghost pressable" type="button" data-unban="${escapeHtml(item.ip)}" aria-label="解除 ${escapeHtml(item.ip)}">
+                    解封
+                  </button>
+                </div>
+                <p class="meta" style="margin:0">封禁于 ${escapeHtml(formatTime(item.createdAt))}</p>
+              </div>
+            `
+          )
+          .join("");
+
+        els.blacklistPager.classList.toggle("hidden", pageCount <= 1);
+        els.blacklistPageInfo.textContent = `第 ${state.blacklistPage} / ${pageCount} 页 · ${state.blacklist.length} 条`;
+        els.blacklistPrev.disabled = state.blacklistPage <= 1;
+        els.blacklistNext.disabled = state.blacklistPage >= pageCount;
+      };
+
+      const applySheetTransform = y => {
+        state.sheetY = y;
+        els.sheetPanel.style.transform = `translate3d(0, ${Math.max(0, y)}px, 0)`;
+        const progress = Math.min(1, Math.max(0, 1 - y / (window.innerHeight * 0.7)));
+        els.sheetScrim.style.opacity = String(progress);
+      };
+
+      let stopSheetSpring = () => {};
+
+      const hideSheetNow = () => {
+        stopSheetSpring();
+        state.sheetOpen = false;
+        state.selectedLog = null;
+        els.sheet.hidden = true;
+        els.sheet.classList.remove("is-open");
+        applySheetTransform(0);
+      };
+
+      const openSheet = () => {
+        stopSheetSpring();
+        els.sheet.hidden = false;
+        els.sheet.classList.add("is-open");
+        state.sheetOpen = true;
+        const start = prefersReducedMotion ? 0 : window.innerHeight;
+        applySheetTransform(start);
+        stopSheetSpring = animateSpring(start, 0, applySheetTransform, { damping: 0.86, response: 0.32 });
+        els.sheetPanel.focus();
+      };
+
+      const closeSheet = (velocity = 0) => {
+        if (!els.sheet.classList.contains("is-open") && els.sheet.hidden) {
+          return;
+        }
+        if (prefersReducedMotion) {
+          hideSheetNow();
+          return;
+        }
+        stopSheetSpring();
+        state.sheetOpen = false;
+        const target = Math.max(window.innerHeight, 640);
+        stopSheetSpring = animateSpring(state.sheetY, target, applySheetTransform, {
+          damping: 0.9,
+          response: 0.3,
+          velocity,
+          onComplete: hideSheetNow,
+        });
+      };
+
+      const fillSheet = log => {
+        state.selectedLog = log;
+        els.sheetTitle.textContent = formatIpChain(log);
+        els.sheetSub.textContent = `${formatTime(log.time)} · ${log.durationMs}ms`;
+        els.sheetChips.innerHTML = renderChips(log);
+        els.sheetJson.textContent = JSON.stringify(log, null, 2);
+      };
+
+      const fetchLogs = async ({ silent = false, resetPage = false } = {}) => {
+        if (!silent) {
+          setBusy(els.refreshBtn, true, "刷新");
+        }
+        try {
+          const ip = els.ipFilter.value.trim();
+          const query = ip ? `?ip=${encodeURIComponent(ip)}` : "";
+          const result = await request(`api/logs${query}`);
+          state.logs = result.data || [];
+          if (resetPage) {
+            state.logsPage = 1;
+          }
+          renderLogs();
+        } catch (error) {
+          showToast(error instanceof Error ? error.message : "获取日志失败");
+        } finally {
+          if (!silent) {
+            setBusy(els.refreshBtn, false, "刷新");
+          }
+        }
+      };
+
+      const fetchBlacklist = async ({ silent = false, resetPage = false } = {}) => {
+        if (!silent) {
+          setBusy(els.refreshBtn, true, "刷新");
+        }
+        try {
+          const result = await request("api/blacklist");
+          state.blacklist = result.data || [];
+          if (resetPage) {
+            state.blacklistPage = 1;
+          }
+          renderBlacklist();
+        } catch (error) {
+          showToast(error instanceof Error ? error.message : "获取黑名单失败");
+        } finally {
+          if (!silent) {
+            setBusy(els.refreshBtn, false, "刷新");
+          }
+        }
+      };
+
+      const enterWorkspace = () => {
+        els.gate.classList.add("hidden");
+        els.workspace.classList.remove("hidden");
+        handleRefresh();
+        window.clearInterval(state.refreshTimer);
+        state.refreshTimer = window.setInterval(() => {
+          if (state.view === "logs" && !state.sheetOpen) {
+            fetchLogs({ silent: true });
+          }
+        }, 8000);
+      };
+
+      const handleUnlock = async event => {
+        event.preventDefault();
+        const token = els.tokenInput.value.trim();
+        if (!token) {
+          els.gateError.textContent = "请输入管理口令";
+          return;
+        }
+
+        state.token = token;
+        setBusy(els.unlockBtn, true, "进入");
+        els.gateError.textContent = "";
+        try {
+          await request("api/logs");
+          sessionStorage.setItem(TOKEN_KEY, token);
+          enterWorkspace();
+        } catch (error) {
+          state.token = "";
+          els.gateError.textContent = error instanceof Error ? error.message : "口令无效";
+        } finally {
+          setBusy(els.unlockBtn, false, "进入");
+        }
+      };
+
+      const handleLogout = (clearInput = true) => {
+        state.token = "";
+        sessionStorage.removeItem(TOKEN_KEY);
+        window.clearInterval(state.refreshTimer);
+        closeSheet();
+        els.workspace.classList.add("hidden");
+        els.gate.classList.remove("hidden");
+        if (clearInput) {
+          els.tokenInput.value = "";
+        }
+        els.tokenInput.focus();
+      };
+
+      const handleSwitchView = view => {
+        state.view = view;
+        const isLogs = view === "logs";
+        els.tabLogs.setAttribute("aria-selected", String(isLogs));
+        els.tabBlacklist.setAttribute("aria-selected", String(!isLogs));
+        els.logsView.classList.toggle("hidden", !isLogs);
+        els.blacklistView.classList.toggle("hidden", isLogs);
+        handleRefresh();
+      };
+
+      const handleRefresh = () => {
+        if (state.view === "logs") {
+          fetchLogs();
+          return;
+        }
+        fetchBlacklist();
+      };
+
+      const handleFilterInput = () => {
+        window.clearTimeout(state.filterTimer);
+        state.filterTimer = window.setTimeout(() => {
+          fetchLogs({ resetPage: true });
+        }, 220);
+      };
+
+      const handleOpenLog = event => {
+        if (event.target.closest("input, label")) {
+          return;
+        }
+        const button = event.target.closest("[data-id]");
+        if (!button) {
+          return;
+        }
+        const log = state.logs.find(item => item.id === button.dataset.id);
+        if (!log) {
+          return;
+        }
+        fillSheet(log);
+        openSheet();
+      };
+
+      const handleLogCheckChange = event => {
+        const check = event.target.closest("[data-check-id]");
+        if (!check) {
+          return;
+        }
+        const id = check.dataset.checkId;
+        if (check.checked) {
+          state.selectedIds.add(id);
+        } else {
+          state.selectedIds.delete(id);
+        }
+        check.closest(".log-item")?.classList.toggle("is-selected", check.checked);
+        syncSelectBar();
+      };
+
+      const handleSelectAll = () => {
+        if (els.selectAll.checked) {
+          state.selectedIds = new Set(state.logs.map(log => log.id));
+        } else {
+          state.selectedIds = new Set();
+        }
+        renderLogs();
+      };
+
+      /**
+       * 批量封禁 IP，成功返回 true。
+       *
+       * @param {string[]} ips
+       * @example
+       * const ok = await handleBanIps(["1.2.3.4"]);
+       */
+      const handleBanIps = async ips => {
+        const unique = [...new Set(ips.map(ip => String(ip).trim()).filter(Boolean))];
+        if (!unique.length) {
+          showToast("请先选择要封禁的 IP");
+          return false;
+        }
+        try {
+          const result = await request("api/blacklist", {
+            method: "POST",
+            body: JSON.stringify({ ips: unique }),
+          });
+          const createdCount = Number(result.createdCount ?? (result.created ? 1 : 0));
+          if (unique.length === 1) {
+            showToast(createdCount ? `已封禁 ${unique[0]}` : `${unique[0]} 已在黑名单中`);
+          } else {
+            showToast(`已封禁 ${createdCount} 个 IP，${unique.length - createdCount} 个已存在`);
+          }
+          state.selectedIds = new Set();
+          await fetchBlacklist({ silent: true, resetPage: true });
+          return true;
+        } catch (error) {
+          showToast(error instanceof Error ? error.message : "封禁失败");
+          return false;
+        }
+      };
+
+      const handleBanIp = async ip => handleBanIps([ip]);
+
+      const handleBanSelected = async () => {
+        const ips = getSelectedIps();
+        setBusy(els.banSelected, true, "封禁所选");
+        await handleBanIps(ips);
+        setBusy(els.banSelected, false, "封禁所选");
+        syncSelectBar();
+      };
+
+      const handleLogsPrev = () => {
+        state.logsPage -= 1;
+        renderLogs();
+      };
+
+      const handleLogsNext = () => {
+        state.logsPage += 1;
+        renderLogs();
+      };
+
+      const handleBlacklistPrev = () => {
+        state.blacklistPage -= 1;
+        renderBlacklist();
+      };
+
+      const handleBlacklistNext = () => {
+        state.blacklistPage += 1;
+        renderBlacklist();
+      };
+
+      const handleUnbanIp = async ip => {
+        try {
+          await request("api/blacklist", {
+            method: "DELETE",
+            body: JSON.stringify({ ip }),
+          });
+          showToast(`已解封 ${ip}`);
+          await fetchBlacklist({ silent: true });
+        } catch (error) {
+          showToast(error instanceof Error ? error.message : "解封失败");
+        }
+      };
+
+      const handleBanSubmit = async event => {
+        event.preventDefault();
+        setBusy(els.banBtn, true, "封禁");
+        await handleBanIp(els.banIp.value);
+        els.banIp.value = "";
+        setBusy(els.banBtn, false, "封禁");
+      };
+
+      const handleBlacklistClick = event => {
+        const button = event.target.closest("[data-unban]");
+        if (!button) {
+          return;
+        }
+        handleUnbanIp(button.dataset.unban);
+      };
+
+      const handleSheetBan = async () => {
+        const ips = getLogIps(state.selectedLog);
+        if (!ips.length) {
+          return;
+        }
+        setBusy(els.sheetBan, true, "封禁链路 IP");
+        const ok = await handleBanIps(ips);
+        setBusy(els.sheetBan, false, "封禁链路 IP");
+        if (ok) {
+          closeSheet();
+        }
+      };
+
+      const bindSheetGesture = () => {
+        let dragging = false;
+        let startY = 0;
+        let history = [];
+
+        const pushHistory = y => {
+          const now = performance.now();
+          history.push({ y, now });
+          history = history.filter(item => now - item.now < 80);
+        };
+
+        const velocity = () => {
+          if (history.length < 2) {
+            return 0;
+          }
+          const first = history[0];
+          const last = history[history.length - 1];
+          const dt = (last.now - first.now) / 1000;
+          if (dt <= 0) {
+            return 0;
+          }
+          return (last.y - first.y) / dt;
+        };
+
+        els.sheetPanel.addEventListener("pointerdown", event => {
+          if (event.target.closest("button, a, input, textarea, pre, label")) {
+            return;
+          }
+          const fromGrabber = Boolean(event.target.closest(".grabber"));
+          const isTouch = event.pointerType === "touch";
+          if (!isTouch && !fromGrabber) {
+            return;
+          }
+          dragging = true;
+          stopSheetSpring();
+          els.sheetPanel.setPointerCapture(event.pointerId);
+          startY = event.clientY - state.sheetY;
+          history = [];
+          pushHistory(state.sheetY);
+        });
+
+        els.sheetPanel.addEventListener("pointermove", event => {
+          if (!dragging) {
+            return;
+          }
+          const raw = event.clientY - startY;
+          const next = raw < 0 ? -rubberband(-raw, window.innerHeight) : raw;
+          applySheetTransform(next);
+          pushHistory(next);
+        });
+
+        const handlePointerUp = () => {
+          if (!dragging) {
+            return;
+          }
+          dragging = false;
+          const v = velocity();
+          const projected = state.sheetY + project(v);
+          const shouldClose = v > 900 || projected > window.innerHeight * 0.28;
+          if (shouldClose) {
+            closeSheet(v);
+            return;
+          }
+          stopSheetSpring = animateSpring(state.sheetY, 0, applySheetTransform, {
+            damping: 0.82,
+            response: 0.3,
+            velocity: v,
+          });
+        };
+
+        els.sheetPanel.addEventListener("pointerup", handlePointerUp);
+        els.sheetPanel.addEventListener("pointercancel", handlePointerUp);
+      };
+
+      els.unlockForm.addEventListener("submit", handleUnlock);
+      els.logoutBtn.addEventListener("click", () => handleLogout(true));
+      els.refreshBtn.addEventListener("click", handleRefresh);
+      els.tabLogs.addEventListener("click", () => handleSwitchView("logs"));
+      els.tabBlacklist.addEventListener("click", () => handleSwitchView("blacklist"));
+      els.ipFilter.addEventListener("input", handleFilterInput);
+      els.selectAll.addEventListener("change", handleSelectAll);
+      els.banSelected.addEventListener("click", handleBanSelected);
+      els.logsList.addEventListener("click", handleOpenLog);
+      els.logsList.addEventListener("change", handleLogCheckChange);
+      els.logsPrev.addEventListener("click", handleLogsPrev);
+      els.logsNext.addEventListener("click", handleLogsNext);
+      els.banForm.addEventListener("submit", handleBanSubmit);
+      els.blacklistList.addEventListener("click", handleBlacklistClick);
+      els.blacklistPrev.addEventListener("click", handleBlacklistPrev);
+      els.blacklistNext.addEventListener("click", handleBlacklistNext);
+      els.sheetClose.addEventListener("click", () => closeSheet());
+      els.sheetScrim.addEventListener("click", () => closeSheet());
+      els.sheetBan.addEventListener("click", handleSheetBan);
+      window.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          closeSheet();
+        }
+      });
+      bindSheetGesture();
+
+      if (state.token) {
+        request("api/logs")
+          .then(() => enterWorkspace())
+          .catch(() => {
+            state.token = "";
+            sessionStorage.removeItem(TOKEN_KEY);
+          });
+      } else {
+        els.tokenInput.focus();
+      }
+    </script>
+  </body>
+</html>

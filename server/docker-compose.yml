@@ -8,6 +8,8 @@ services:
       - .env
     environment:
       PORT: ${PORT:-6623}
+    volumes:
+      - ./data:/app/data
     pull_policy: always
     restart: unless-stopped
     networks:

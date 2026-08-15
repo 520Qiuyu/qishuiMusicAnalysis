@@ -11,7 +11,7 @@ app.use(
   cors({
     origin: "*",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Accept", "Authorization"],
+    allowHeaders: ["Content-Type", "Accept", "Authorization", "X-Admin-Token"],
   }),
 );
 app.use(bodyParser());

@@ -21,4 +21,6 @@ export const env = {
   xMedusa: process.env.X_MEDUSA || "",
   /** 同一 IP / trackId 最小请求间隔（毫秒），默认 4000 */
   rateLimitIntervalMs: Number(process.env.RATE_LIMIT_INTERVAL_MS) || 4000,
+  /** 解析日志 / 黑名单接口口令 */
+  adminToken: process.env.ADMIN_TOKEN || "",
 };
