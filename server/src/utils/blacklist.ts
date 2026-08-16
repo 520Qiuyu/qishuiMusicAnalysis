@@ -80,13 +80,19 @@ export const isBlacklisted = (ipOrChain: string | string[]) => {
 };
 
 /**
- * 获取全部黑名单记录。
+ * 获取黑名单记录，默认按封禁时间倒序。
+ * ip 为包含匹配（忽略大小写），例如 "171.2" 可筛出 171.2.x.x。
  *
  * @example
  * const list = getBlacklist();
+ * const matched = getBlacklist({ ip: "171.2" });
  */
-export const getBlacklist = () => {
-  return [...blacklistStore.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+export const getBlacklist = (filter?: { ip?: string }) => {
+  const ip = filter?.ip?.trim().toLowerCase();
+  const list = [...blacklistStore.values()].filter(item =>
+    ip ? item.ip.toLowerCase().includes(ip) : true
+  );
+  return list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 };
 
 /**

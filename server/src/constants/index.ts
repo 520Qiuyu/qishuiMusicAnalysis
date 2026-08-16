@@ -9,6 +9,21 @@ export const IMAGES = [
   "https://pics4.baidu.com/feed/279759ee3d6d55fb6fc22b275a1ff64420a4dd73.jpeg@f_auto?token=4b34e6a070a0aa9fe650aef72be847fd",
   "https://pics3.baidu.com/feed/0d338744ebf81a4cdbd95eb05f06d349242da699.jpeg@f_auto?token=7b670150292a124d8f899bf848a48c7a",
   "https://minio.hezebin.com/blog/preview/a053dd1ae41ddadb56981d1c1f758ddf.jpeg",
+  "https://pic.rmb.bdstatic.com/bjh/251114/beautify/8ebc17bcfe5fc9771fc5df644a6e1528.jpeg?for=bg",
+  "https://pics5.baidu.com/feed/8b82b9014a90f603c1f4b1a5b13e000bb151ed4d.jpeg@f_auto?token=d992950993d4de58ef7cea2a10e48c5f",
+  "https://pics6.baidu.com/feed/11385343fbf2b2118e87bd9c4dacd6280dd78e77.jpeg@f_auto?token=f6e055cba522c328b7595ce2baadab9f",
+  "https://q4.itc.cn/images01/20241024/d81fb2c3549d447691f70587fbb834a4.jpeg",
+  "https://img1.baidu.com/it/u=4113379835,1864726408&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=710",
+  "https://pics1.baidu.com/feed/aa18972bd40735fadf2613c30c8aa0bd0d2408db.jpeg@f_auto?token=c546f3f2d050b088392997b48396a6b5",
+  "https://pics1.baidu.com/feed/9825bc315c6034a843f6cebd423ffa44092376b6.png@f_auto?token=43871f18206926bc47b32abea68ddf94",
+  "https://pics3.baidu.com/feed/42a98226cffc1e17098dfb0ec3bc4513738de998.png@f_auto?token=226008bf8e4ba9437bb69e4719a2e3f0",
+  "https://q0.itc.cn/q_70/images03/20241012/da1b0092eda041efae1cce94bac3fbef.jpeg",
+  "https://q9.itc.cn/images01/20250812/4e16bc80f9a64610b639709d132b3294.jpeg",
+  "https://nimg.ws.126.net/?url=http%3A%2F%2Fdingyue.ws.126.net%2F2024%2F1006%2Fb67efaadj00skxif9003yd000xq00tym.jpg&thumbnail=660x2147483647&quality=80&type=jpg",
+  "https://q5.itc.cn/images01/20250822/546ea5f4aca4495a86744db51949b424.png",
+  "https://pics6.baidu.com/feed/1b4c510fd9f9d72a329ee6b253069b24359bbb60.jpeg@f_auto?token=28cd0158d752e0e41a9b78f9b74d9670",
+  "https://pics6.baidu.com/feed/11385343fbf2b2118e87bd9c4dacd6280dd78e77.jpeg@f_auto?token=f6e055cba522c328b7595ce2baadab9f",
+  "https://pics2.baidu.com/feed/3812b31bb051f8194992ca37f3665dff2f73e779.jpeg@f_auto?token=ebbdc0d5242565fb4c72c4df01a8eff3",
 ];
 
 /**
@@ -205,7 +220,11 @@ export const MOCK_TRACK_METAS = [
   { title: "Stay", artist: "The Kid LAROI & Justin Bieber", album: "F*CK LOVE 3: OVER YOU" },
   { title: "Peaches", artist: "Justin Bieber", album: "Justice" },
   { title: "Señorita", artist: "Shawn Mendes & Camila Cabello", album: "Shawn Mendes" },
-  { title: "Sunflower", artist: "Post Malone & Swae Lee", album: "Spider-Man: Into the Spider-Verse" },
+  {
+    title: "Sunflower",
+    artist: "Post Malone & Swae Lee",
+    album: "Spider-Man: Into the Spider-Verse",
+  },
   { title: "Circles", artist: "Post Malone", album: "Hollywood's Bleeding" },
   { title: "Believer", artist: "Imagine Dragons", album: "Evolve" },
   { title: "Thunder", artist: "Imagine Dragons", album: "Evolve" },
@@ -216,7 +235,11 @@ export const MOCK_TRACK_METAS = [
   { title: "Bohemian Rhapsody", artist: "Queen", album: "A Night at the Opera" },
   { title: "Don't Stop Me Now", artist: "Queen", album: "Jazz" },
   { title: "Hotel California", artist: "Eagles", album: "Hotel California" },
-  { title: "Take Me Home, Country Roads", artist: "John Denver", album: "Poems, Prayers & Promises" },
+  {
+    title: "Take Me Home, Country Roads",
+    artist: "John Denver",
+    album: "Poems, Prayers & Promises",
+  },
   { title: "Imagine", artist: "John Lennon", album: "Imagine" },
   { title: "Hey Jude", artist: "The Beatles", album: "Hey Jude" },
   { title: "Let It Be", artist: "The Beatles", album: "Let It Be" },
@@ -258,9 +281,7 @@ export const getRandomTrackMeta = () => {
  * const playAuth = getRandomPlayAuth();
  */
 export const getRandomPlayAuth = () => {
-  const bytes = Buffer.from(
-    Array.from({ length: 36 }, () => Math.floor(Math.random() * 256))
-  );
+  const bytes = Buffer.from(Array.from({ length: 36 }, () => Math.floor(Math.random() * 256)));
   return bytes.toString("base64");
 };
 

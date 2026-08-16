@@ -1,5 +1,5 @@
 import Router from "@koa/router";
-import { addManyToBlacklist, getBlacklist, removeFromBlacklist, requireAdminToken } from "../utils";
+import { addManyToBlacklist, getBlacklist, paginate, parsePageQuery, removeFromBlacklist, requireAdminToken } from "../utils";
 
 const router = new Router({ prefix: "/api/blacklist" });
 
@@ -49,11 +49,16 @@ const getIpsFromRequest = (ctx: {
 };
 
 router.get("/", async ctx => {
-  const data = getBlacklist();
+  const ip = typeof ctx.query.ip === "string" ? ctx.query.ip : "";
+  const { page, pageSize } = parsePageQuery(ctx.query);
+  const result = paginate(getBlacklist({ ip }), page, pageSize);
   ctx.body = {
     ok: true,
-    total: data.length,
-    data,
+    total: result.total,
+    page: result.page,
+    pageSize: result.pageSize,
+    pageCount: result.pageCount,
+    data: result.data,
   };
 });
 

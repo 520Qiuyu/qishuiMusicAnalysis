@@ -5,5 +5,6 @@ export { getClientIp, getClientIpChain, splitIpChain } from "./ip";
 export { recordAndGetIpStats } from "./ipStats";
 export { appendParseLog, getParseLogs } from "./parseLog";
 export type { ParseLogEntry, ParseLogInput } from "./parseLog";
+export { paginate, parsePageQuery } from "./pagination";
 export { cleanupRateLimitStore, isWithinRateLimit, markRateLimit } from "./rateLimit";
 

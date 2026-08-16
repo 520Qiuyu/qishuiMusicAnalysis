@@ -777,6 +777,14 @@
         </section>
 
         <section id="blacklist-view" class="hidden">
+          <div class="toolbar">
+            <input
+              id="blacklist-filter"
+              type="search"
+              placeholder="模糊搜索已封禁 IP，例如 171.2"
+              aria-label="按 IP 模糊筛选黑名单"
+            />
+          </div>
           <form class="toolbar" id="ban-form">
             <input
               id="ban-ip"
@@ -843,6 +851,7 @@
         logsView: document.getElementById("logs-view"),
         blacklistView: document.getElementById("blacklist-view"),
         ipFilter: document.getElementById("ip-filter"),
+        blacklistFilter: document.getElementById("blacklist-filter"),
         selectAll: document.getElementById("select-all"),
         banSelected: document.getElementById("ban-selected"),
         logsList: document.getElementById("logs-list"),
@@ -879,8 +888,13 @@
         view: "logs",
         logs: [],
         logsPage: 1,
+        logsTotal: 0,
+        logsPageCount: 1,
+        logsStats: { rateLimited: 0, blacklisted: 0, failed: 0 },
         blacklist: [],
         blacklistPage: 1,
+        blacklistTotal: 0,
+        blacklistPageCount: 1,
         selectedIds: new Set(),
         selectedLog: null,
         loading: false,
@@ -1069,7 +1083,7 @@
       const formatIpChain = log => getLogIps(log).join(" → ") || String(log?.ip || "");
 
       /**
-       * 当前已勾选日志对应的去重 IP（含完整链路每一跳）。
+       * 当前页已勾选日志对应的去重 IP（含完整链路每一跳）。
        *
        * @example
        * const ips = getSelectedIps();
@@ -1092,18 +1106,18 @@
         els.banSelected.textContent = ips.length ? `封禁所选 (${ips.length})` : "封禁所选";
       };
 
-      const PAGE_SIZE = 200;
+      const PAGE_SIZE = 20;
 
       const renderLogs = () => {
         state.selectedIds = new Set(
           [...state.selectedIds].filter(id => state.logs.some(log => log.id === id))
         );
-        els.statTotal.textContent = String(state.logs.length);
-        els.statLimited.textContent = String(state.logs.filter(item => item.rateLimited).length);
-        els.statBanned.textContent = String(state.logs.filter(item => item.blacklisted).length);
-        els.statFailed.textContent = String(state.logs.filter(item => item.status >= 400).length);
+        els.statTotal.textContent = String(state.logsTotal);
+        els.statLimited.textContent = String(state.logsStats.rateLimited);
+        els.statBanned.textContent = String(state.logsStats.blacklisted);
+        els.statFailed.textContent = String(state.logsStats.failed);
 
-        if (!state.logs.length) {
+        if (!state.logsTotal) {
           state.logsPage = 1;
           els.logsList.innerHTML = renderEmpty("最近 24 小时还没有解析日志");
           els.logsPager.classList.add("hidden");
@@ -1111,12 +1125,7 @@
           return;
         }
 
-        const pageCount = Math.max(1, Math.ceil(state.logs.length / PAGE_SIZE));
-        state.logsPage = Math.min(Math.max(1, state.logsPage), pageCount);
-        const start = (state.logsPage - 1) * PAGE_SIZE;
-        const pageItems = state.logs.slice(start, start + PAGE_SIZE);
-
-        els.logsList.innerHTML = pageItems
+        els.logsList.innerHTML = state.logs
           .map(log => {
             const checked = state.selectedIds.has(log.id);
             return `
@@ -1143,27 +1152,22 @@
           })
           .join("");
 
-        els.logsPager.classList.toggle("hidden", pageCount <= 1);
-        els.logsPageInfo.textContent = `第 ${state.logsPage} / ${pageCount} 页 · ${state.logs.length} 条`;
+        els.logsPager.classList.toggle("hidden", state.logsPageCount <= 1);
+        els.logsPageInfo.textContent = `第 ${state.logsPage} / ${state.logsPageCount} 页 · ${state.logsTotal} 条`;
         els.logsPrev.disabled = state.logsPage <= 1;
-        els.logsNext.disabled = state.logsPage >= pageCount;
+        els.logsNext.disabled = state.logsPage >= state.logsPageCount;
         syncSelectBar();
       };
 
       const renderBlacklist = () => {
-        if (!state.blacklist.length) {
+        if (!state.blacklistTotal) {
           state.blacklistPage = 1;
           els.blacklistList.innerHTML = renderEmpty("黑名单是空的，可添加完整 IP 或片段如 172.2");
           els.blacklistPager.classList.add("hidden");
           return;
         }
 
-        const pageCount = Math.max(1, Math.ceil(state.blacklist.length / PAGE_SIZE));
-        state.blacklistPage = Math.min(Math.max(1, state.blacklistPage), pageCount);
-        const start = (state.blacklistPage - 1) * PAGE_SIZE;
-        const pageItems = state.blacklist.slice(start, start + PAGE_SIZE);
-
-        els.blacklistList.innerHTML = pageItems
+        els.blacklistList.innerHTML = state.blacklist
           .map(
             item => `
               <div class="ban-item" role="listitem">
@@ -1179,10 +1183,10 @@
           )
           .join("");
 
-        els.blacklistPager.classList.toggle("hidden", pageCount <= 1);
-        els.blacklistPageInfo.textContent = `第 ${state.blacklistPage} / ${pageCount} 页 · ${state.blacklist.length} 条`;
+        els.blacklistPager.classList.toggle("hidden", state.blacklistPageCount <= 1);
+        els.blacklistPageInfo.textContent = `第 ${state.blacklistPage} / ${state.blacklistPageCount} 页 · ${state.blacklistTotal} 条`;
         els.blacklistPrev.disabled = state.blacklistPage <= 1;
-        els.blacklistNext.disabled = state.blacklistPage >= pageCount;
+        els.blacklistNext.disabled = state.blacklistPage >= state.blacklistPageCount;
       };
 
       const applySheetTransform = y => {
@@ -1246,13 +1250,28 @@
           setBusy(els.refreshBtn, true, "刷新");
         }
         try {
-          const ip = els.ipFilter.value.trim();
-          const query = ip ? `?ip=${encodeURIComponent(ip)}` : "";
-          const result = await request(`api/logs${query}`);
-          state.logs = result.data || [];
           if (resetPage) {
             state.logsPage = 1;
+            state.selectedIds = new Set();
           }
+          const params = new URLSearchParams({
+            page: String(state.logsPage),
+            pageSize: String(PAGE_SIZE),
+          });
+          const ip = els.ipFilter.value.trim();
+          if (ip) {
+            params.set("ip", ip);
+          }
+          const result = await request(`api/logs?${params}`);
+          state.logs = result.data || [];
+          state.logsTotal = Number(result.total || 0);
+          state.logsPage = Number(result.page || state.logsPage);
+          state.logsPageCount = Number(result.pageCount || 1);
+          state.logsStats = {
+            rateLimited: Number(result.stats?.rateLimited || 0),
+            blacklisted: Number(result.stats?.blacklisted || 0),
+            failed: Number(result.stats?.failed || 0),
+          };
           renderLogs();
         } catch (error) {
           showToast(error instanceof Error ? error.message : "获取日志失败");
@@ -1268,11 +1287,22 @@
           setBusy(els.refreshBtn, true, "刷新");
         }
         try {
-          const result = await request("api/blacklist");
-          state.blacklist = result.data || [];
           if (resetPage) {
             state.blacklistPage = 1;
           }
+          const params = new URLSearchParams({
+            page: String(state.blacklistPage),
+            pageSize: String(PAGE_SIZE),
+          });
+          const ip = els.blacklistFilter.value.trim();
+          if (ip) {
+            params.set("ip", ip);
+          }
+          const result = await request(`api/blacklist?${params}`);
+          state.blacklist = result.data || [];
+          state.blacklistTotal = Number(result.total || 0);
+          state.blacklistPage = Number(result.page || state.blacklistPage);
+          state.blacklistPageCount = Number(result.pageCount || 1);
           renderBlacklist();
         } catch (error) {
           showToast(error instanceof Error ? error.message : "获取黑名单失败");
@@ -1356,6 +1386,13 @@
         }, 220);
       };
 
+      const handleBlacklistFilterInput = () => {
+        window.clearTimeout(state.filterTimer);
+        state.filterTimer = window.setTimeout(() => {
+          fetchBlacklist({ resetPage: true });
+        }, 220);
+      };
+
       const handleOpenLog = event => {
         if (event.target.closest("input, label")) {
           return;
@@ -1388,11 +1425,9 @@
       };
 
       const handleSelectAll = () => {
-        if (els.selectAll.checked) {
-          state.selectedIds = new Set(state.logs.map(log => log.id));
-        } else {
-          state.selectedIds = new Set();
-        }
+        state.selectedIds = els.selectAll.checked
+          ? new Set(state.logs.map(log => log.id))
+          : new Set();
         renderLogs();
       };
 
@@ -1440,23 +1475,35 @@
       };
 
       const handleLogsPrev = () => {
+        if (state.logsPage <= 1) {
+          return;
+        }
         state.logsPage -= 1;
-        renderLogs();
+        fetchLogs({ silent: true });
       };
 
       const handleLogsNext = () => {
+        if (state.logsPage >= state.logsPageCount) {
+          return;
+        }
         state.logsPage += 1;
-        renderLogs();
+        fetchLogs({ silent: true });
       };
 
       const handleBlacklistPrev = () => {
+        if (state.blacklistPage <= 1) {
+          return;
+        }
         state.blacklistPage -= 1;
-        renderBlacklist();
+        fetchBlacklist({ silent: true });
       };
 
       const handleBlacklistNext = () => {
+        if (state.blacklistPage >= state.blacklistPageCount) {
+          return;
+        }
         state.blacklistPage += 1;
-        renderBlacklist();
+        fetchBlacklist({ silent: true });
       };
 
       const handleUnbanIp = async ip => {
@@ -1581,6 +1628,7 @@
       els.tabLogs.addEventListener("click", () => handleSwitchView("logs"));
       els.tabBlacklist.addEventListener("click", () => handleSwitchView("blacklist"));
       els.ipFilter.addEventListener("input", handleFilterInput);
+      els.blacklistFilter.addEventListener("input", handleBlacklistFilterInput);
       els.selectAll.addEventListener("change", handleSelectAll);
       els.banSelected.addEventListener("click", handleBanSelected);
       els.logsList.addEventListener("click", handleOpenLog);
