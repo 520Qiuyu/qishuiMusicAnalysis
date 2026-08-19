@@ -28,6 +28,8 @@ const trackIdLastRequestAt = new Map<string, number>();
 /** 按 IP 缓存上一次成功解析的 url / playAuth / playAuthID */
 const ipLastParseAuth = new Map<string, { url?: string; playAuth?: string; playAuthID?: string }>();
 let lastUrl = "";
+let lastPlayAuth = "";
+let lastPlayAuthID = "";
 
 const buildFakeTrackResponse = (clientIp: string) => {
   const { title, artist, album } = getRandomTrackMeta();
@@ -40,9 +42,9 @@ const buildFakeTrackResponse = (clientIp: string) => {
       album,
       cover: getRandomImage(),
       // 优先返回该 IP 上一次解析的地址与鉴权信息
-      url: lastParse?.url || lastUrl || getRandomSong(),
-      playAuth: lastParse?.playAuth || getRandomPlayAuth(),
-      playAuthID: lastParse?.playAuthID || getRandomPlayAuthID(),
+      url: lastUrl || getRandomSong(),
+      playAuth: lastPlayAuth || lastParse?.playAuth || getRandomPlayAuth(),
+      playAuthID: lastPlayAuthID || lastParse?.playAuthID || getRandomPlayAuthID(),
     },
   };
 };
@@ -131,12 +133,14 @@ router.post("/v2", async ctx => {
       playAuth: data.playAuth,
       playAuthID: data.playAuthID,
     });
+    lastUrl = data.url!;
+    lastPlayAuth = data.playAuth!;
+    lastPlayAuthID = data.playAuthID!;
     const response = {
       ok: true,
       data,
     };
     ctx.body = response;
-    lastUrl = data.url!;
     recordTrackLog({
       time: requestTime,
       ip,
